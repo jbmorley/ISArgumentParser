@@ -23,24 +23,11 @@
 #import <ISUtilities/ISUtilities.h>
 
 #import "ISArgumentParser.h"
+#import "ISArgument.h"
 
 NSString *const ISArgumentParserActionStore = @"store";
 NSString *const ISArgumentParserActionStoreTrue = @"store_true";
 NSString *const ISArgumentParserActionStoreFalse = @"store_false";
-
-@interface ISArgument : NSObject
-
-@property (nonatomic, readwrite, copy) NSString *name;
-@property (nonatomic, readwrite, copy) NSString *alternativeName;
-@property (nonatomic, readwrite, copy) id defaultValue;
-@property (nonatomic, readwrite, copy) NSString *action;
-@property (nonatomic, readwrite, copy) NSString *description;
-
-@end
-
-@implementation ISArgument
-
-@end
 
 @interface ISArgumentParser ()
 
