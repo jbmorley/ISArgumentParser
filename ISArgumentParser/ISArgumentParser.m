@@ -25,9 +25,7 @@
 #import "ISArgumentParser.h"
 #import "ISArgument.h"
 
-NSString *const ISArgumentParserActionStore = @"store";
-NSString *const ISArgumentParserActionStoreTrue = @"store_true";
-NSString *const ISArgumentParserActionStoreFalse = @"store_false";
+NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
 
 @interface ISArgumentParser ()
 
@@ -35,9 +33,7 @@ NSString *const ISArgumentParserActionStoreFalse = @"store_false";
 @property (nonatomic, readonly, strong) NSMutableArray *allArguments;
 @property (nonatomic, readonly, strong) NSMutableArray *positionalArguments;
 @property (nonatomic, readonly, strong) NSMutableDictionary *optionalArguments;
-
-@property (nonatomic, readwrite, copy) NSString *application;
-@property (nonatomic, readwrite, copy) NSString *name;
+@property (nonatomic, readonly, strong) NSMutableArray *options;
 
 @end
 
@@ -67,6 +63,7 @@ NSString *const ISArgumentParserActionStoreFalse = @"store_false";
         _allArguments = [NSMutableArray array];
         _positionalArguments = [NSMutableArray array];
         _optionalArguments = [NSMutableDictionary dictionary];
+        _options = [NSMutableArray array];
         _prefixCharacters = @"-";
         
         [self addArgumentWithName:@"--help"
@@ -81,7 +78,7 @@ NSString *const ISArgumentParserActionStoreFalse = @"store_false";
 - (void)addArgumentWithName:(NSString *)name
             alternativeName:(NSString *)alternativeName
                defaultValue:(id)defaultValue
-                     action:(NSString *)action
+                     action:(ISArgumentParserAction)action
                 description:(NSString *)description
 {
     // Construct the argument.
@@ -118,6 +115,8 @@ NSString *const ISArgumentParserActionStoreFalse = @"store_false";
         if (argument.alternativeName) {
             self.optionalArguments[argument.alternativeName] = argument;
         }
+        
+        [self.options addObject:argument];
         
     } else {
         
@@ -161,12 +160,9 @@ NSString *const ISArgumentParserActionStoreFalse = @"store_false";
                   description:description];
 }
 
-- (NSDictionary *)parseArguments:(NSArray *)arguments
+- (NSDictionary *)parseArguments:(NSArray *)arguments error:(NSError *__autoreleasing *)error
 {
-    // TODO Check the minimum argument length and terminate the application correctly.
-    
-    self.application = arguments[0];
-    self.name = [[self.application lastPathComponent] stringByDeletingPathExtension];
+    NSString *application = [[arguments[0] lastPathComponent] stringByDeletingPathExtension];
     
     NSMutableDictionary *options = [NSMutableDictionary dictionary];
     
@@ -208,25 +204,34 @@ NSString *const ISArgumentParserActionStoreFalse = @"store_false";
                     
                     NSString *name = [self removePrefixesFromOptionWithName:option.name];
                     
-                    if ([option.action isEqualToString:ISArgumentParserActionStore]) {
+                    if (option.action == ISArgumentParserActionStore) {
                         
                         activeOption = option;
                         activeName = name;
                         state = StateExpectSingle;
                         
-                    } else if ([option.action isEqualToString:ISArgumentParserActionStoreTrue]) {
+                    } else if (option.action == ISArgumentParserActionStoreTrue) {
                         
-                        options[name] = @(YES);
+                        options[name] = @YES;
                         state = StateScanning;
                         
-                    } else if ([option.action isEqualToString:ISArgumentParserActionStoreFalse]) {
+                    } else if (option.action == ISArgumentParserActionStoreFalse) {
                         
-                        options[name] = @(NO);
+                        options[name] = @NO;
                         state = StateScanning;
                         
                     } else {
                         
-                        ISAssertUnreached(@"Unsupported option type.");
+                        fprintf(stderr,
+                                "%s: error: unsupported option '%s'\n",
+                                [application UTF8String],
+                                [argument UTF8String]);
+                        if (error) {
+                            *error = [NSError errorWithDomain:ISArgumentParserErrorDomain
+                                                         code:ISArgumentParserErrorUnsupportedOption
+                                                     userInfo:nil];
+                        }
+                        return nil;
                         
                     }
                     
@@ -256,35 +261,116 @@ NSString *const ISArgumentParserActionStoreFalse = @"store_false";
     }
     
     ISAssert(state == StateScanning, @"Expecting more arguments :(");
+    if (state != StateScanning) {
+        fprintf(stderr, "%s: error: invalid arguments\n", [application UTF8String]);
+        if (error) {
+            *error = [NSError errorWithDomain:ISArgumentParserErrorDomain
+                                         code:ISArgumentParserErrorInvalidArguments
+                                     userInfo:nil];
+        }
+        return nil;
+    }
     
+    // Check to see if the user has asked for help.
+    if ([options[@"help"] boolValue]) {
+        [self help:application];
+        return nil;
+    }
+    
+    // Help is a special key so once we've processed it we remove it from the options.
+    [options removeObjectForKey:@"help"];
+
     // Process the remaining positional arguments.
     
     // TODO Support optional positional arguments.
     
-    ISAssert([self.positionalArguments count] == [positionalArguments count],
-             @"Unexpected length of positional arguments");
+    // Check if there are too few positional arguments.
+    if ([positionalArguments count] < [self.positionalArguments count]) {
+        fprintf(stderr, "%s: error: too few arguments\n", [application UTF8String]);
+        if (error) {
+            *error = [NSError errorWithDomain:ISArgumentParserErrorDomain
+                                         code:ISArgumentParserErrorTooFewArguments
+                                     userInfo:nil];
+        }
+        return nil;
+    }
     
-    NSUInteger index = 0;
-    while ([positionalArguments count] > 0) {
-        
-        NSString *argument = [positionalArguments firstObject];
+    // Process he positional arguments.
+    [self.positionalArguments enumerateObjectsUsingBlock:^(ISArgument *positional, NSUInteger idx, BOOL *stop) {
+        options[positional.name] = positionalArguments[0];
         [positionalArguments removeObjectAtIndex:0];
-        
-        ISArgument *positionalArgument = self.positionalArguments[index];
-        
-        // TODO Support argument types.
-        options[positionalArgument.name] = argument;
-        
-        index++;
+    }];
+    
+    // Check if there are unrecognized positional argumnets.
+    if ([positionalArguments count] > 0) {
+        fprintf(stderr, "%s: error: unrecognized arguments: %s\n",
+                [application UTF8String],
+                [[positionalArguments componentsJoinedByString:@" "] UTF8String]);
+        if (error) {
+            *error = [NSError errorWithDomain:ISArgumentParserErrorDomain
+                                         code:ISArgumentPArserErrorUnrecognizedArguments
+                                     userInfo:nil];
+        }
+        return nil;
     }
     
     return options;
 }
 
-- (NSDictionary *)parseArgumentsWithCount:(int)count vector:(const char **)vector
+- (NSString *)usage:(NSString *)application
+{
+    NSMutableArray *options = [NSMutableArray arrayWithCapacity:[self.optionalArguments count]];
+    
+    for (ISArgument *argument in self.options) {
+        NSString *option = argument.alternativeName ? : argument.name;
+        [options addObject:[NSString stringWithFormat:@"[%@]", option]];
+    }
+    
+    for (ISArgument *argument in self.positionalArguments) {
+        [options addObject:argument.name];
+    }
+    
+    NSString *usage = [NSString stringWithFormat:@"usage: %@ %@", application, [options componentsJoinedByString:@" "]];
+    
+    return usage;
+}
+
+- (void)help:(NSString *)application
+{
+    NSMutableArray *options = [NSMutableArray array];
+    for (ISArgument *argument in self.options) {
+        [options addObject:[argument help]];
+    }
+
+    NSMutableArray *positionals = [NSMutableArray array];
+    for (ISArgument *argument in self.positionalArguments) {
+        [positionals addObject:[argument help]];
+    }
+    
+    NSString *help = [NSString stringWithFormat:
+                      @"%@\n"
+                      @"\n"
+                      @"%@\n"
+                      @"\n"
+                      @"positional arguments:\n"
+                      @"%@\n"
+                      @"\n"
+                      @"optional arguments:\n"
+                      @"%@\n",
+                      [self usage:application],
+                      [self description],
+                      [positionals componentsJoinedByString:@"\n"],
+                      [options componentsJoinedByString:@"\n"]];
+    
+    printf("%s\n", [help UTF8String]);
+}
+
+- (NSDictionary *)parseArgumentsWithCount:(int)count
+                                   vector:(const char **)vector
+                                    error:(NSError *__autoreleasing *)error
 {
     NSArray *arguments = [ISArgumentParser argumentsWithCount:count vector:vector];
-    return [self parseArguments:arguments];
+    return [self parseArguments:arguments error:error];
 }
 
 @end

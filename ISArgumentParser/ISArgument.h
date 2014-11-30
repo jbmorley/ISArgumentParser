@@ -20,12 +20,16 @@
 // SOFTWARE.
 //
 
+#import "ISArgumentParser.h"
+
 @interface ISArgument : NSObject
 
 @property (nonatomic, readwrite, copy) NSString *name;
 @property (nonatomic, readwrite, copy) NSString *alternativeName;
 @property (nonatomic, readwrite, copy) id defaultValue;
-@property (nonatomic, readwrite, copy) NSString *action;
+@property (nonatomic, readwrite, assign) ISArgumentParserAction action;
 @property (nonatomic, readwrite, copy) NSString *description;
+
+- (NSString *)help;
 
 @end

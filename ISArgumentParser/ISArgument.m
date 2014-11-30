@@ -28,4 +28,18 @@
 
 @implementation ISArgument
 
+- (NSString *)help
+{
+    NSMutableString *help = [NSMutableString string];
+    [help appendString:@"  "];
+    [help appendString:self.name];
+    if (self.alternativeName) {
+        [help appendString:@", "];
+        [help appendString:self.alternativeName];
+    }
+    [help appendString:@"  "];
+    [help appendString:self.description];
+    return help;
+}
+
 @end

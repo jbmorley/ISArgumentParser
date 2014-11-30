@@ -22,9 +22,20 @@
 
 #import <Foundation/Foundation.h>
 
-extern NSString *const ISArgumentParserActionStore;
-extern NSString *const ISArgumentParserActionStoreTrue;
-extern NSString *const ISArgumentParserActionStoreFalse;
+typedef NS_ENUM(NSUInteger, ISArgumentParserAction) {
+    ISArgumentParserActionStore,
+    ISArgumentParserActionStoreTrue,
+    ISArgumentParserActionStoreFalse,
+};
+
+extern NSString *const ISArgumentParserErrorDomain;
+
+typedef NS_ENUM(NSUInteger, ISArgumentParserError) {
+    ISArgumentParserErrorInvalidArguments,
+    ISArgumentParserErrorUnsupportedOption,
+    ISArgumentParserErrorTooFewArguments,
+    ISArgumentPArserErrorUnrecognizedArguments,
+};
 
 @interface ISArgumentParser : NSObject
 
@@ -38,12 +49,15 @@ extern NSString *const ISArgumentParserActionStoreFalse;
 - (void)addArgumentWithName:(NSString *)name
             alternativeName:(NSString *)alternativeName
                defaultValue:(id)defaultValue
-                     action:(NSString *)action
+                     action:(ISArgumentParserAction)action
                 description:(NSString *)description;
 - (void)addArgumentWithName:(NSString *)name
                 description:(NSString *)description;
 
-- (NSDictionary *)parseArguments:(NSArray *)arguments;
-- (NSDictionary *)parseArgumentsWithCount:(int)count vector:(const char **)vector;
+- (NSDictionary *)parseArguments:(NSArray *)arguments
+                           error:(NSError *__autoreleasing *)error;
+- (NSDictionary *)parseArgumentsWithCount:(int)count
+                                   vector:(const char **)vector
+                                    error:(NSError *__autoreleasing *)error;
 
 @end
