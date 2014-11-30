@@ -1,0 +1,21 @@
+PODS:
+  - ISArgumentParser (0.0.1):
+    - ISUtilities (~> 1.1)
+  - ISUtilities (1.1.2):
+    - ISUtilities/UIKit+ISUtilities (= 1.1.2)
+
+DEPENDENCIES:
+  - ISArgumentParser (from `..`)
+  - ISUtilities (from `../../../../shows/dependencies/ISUtilities`)
+
+EXTERNAL SOURCES:
+  ISArgumentParser:
+    :path: ..
+  ISUtilities:
+    :path: ../../../../shows/dependencies/ISUtilities
+
+SPEC CHECKSUMS:
+  ISArgumentParser: 454077275415fed2d3741c66c839f5c5c4701405
+  ISUtilities: f2bec2f75608e4391013b5e62a5f1db30339bd39
+
+COCOAPODS: 0.35.0
