@@ -20,6 +20,8 @@
 // SOFTWARE.
 //
 
+#import <ISUtilities/ISUtilities.h>
+
 #import "ISArgument.h"
 
 @interface ISArgument ()
@@ -27,6 +29,38 @@
 @end
 
 @implementation ISArgument
+
+- (instancetype)initWithName:(NSString *)name
+             alternativeName:(NSString *)alternativeName
+                        type:(ISArgumentParserType)type
+                defaultValue:(id)defaultValue
+                      action:(ISArgumentParserAction)action
+                 description:(NSString *)description
+{
+    self = [super init];
+    if (self) {
+        _name = name;
+        _alternativeName = alternativeName;
+        _type = type;
+        _defaultValue = defaultValue;
+        _action = action;
+        _description = description;
+        
+        // Check that the defualt value is of the correct type if one is set.
+        if (_defaultValue) {
+            if (_type == ISArgumentParserTypeString) {
+                ISAssert([_defaultValue isKindOfClass:[NSString class]], @"Default argument isn't of type NSString.");
+            } else if (_type == ISArgumentParserTypeInteger ||
+                       _type == ISArgumentParserTypeBool) {
+                ISAssert([_defaultValue isKindOfClass:[NSNumber class]], @"Default argument isn't of type NSNumber.");
+            } else {
+                ISAssertUnreached(@"Unknown type (%d).", _type);
+            }
+        }
+        
+    }
+    return self;
+}
 
 - (NSString *)help
 {

@@ -24,12 +24,22 @@
 
 @interface ISArgument : NSObject
 
-@property (nonatomic, readwrite, copy) NSString *name;
-@property (nonatomic, readwrite, copy) NSString *alternativeName;
-@property (nonatomic, readwrite, copy) id defaultValue;
-@property (nonatomic, readwrite, assign) ISArgumentParserAction action;
-@property (nonatomic, readwrite, copy) NSString *description;
+@property (nonatomic, readonly, copy) NSString *name;
+@property (nonatomic, readonly, copy) NSString *alternativeName;
+@property (nonatomic, readonly, assign) ISArgumentParserType type;
+@property (nonatomic, readonly, copy) id defaultValue;
+@property (nonatomic, readonly, assign) ISArgumentParserAction action;
+@property (nonatomic, readonly, copy) NSString *description;
 
 - (NSString *)help;
+
+// TODO init should be unused
+
+- (instancetype)initWithName:(NSString *)name
+             alternativeName:(NSString *)alternativeName
+                        type:(ISArgumentParserType)type
+                defaultValue:(id)defaultValue
+                      action:(ISArgumentParserAction)action
+                 description:(NSString *)description;
 
 @end

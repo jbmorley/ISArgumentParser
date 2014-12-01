@@ -68,6 +68,7 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
         
         [self addArgumentWithName:@"--help"
                   alternativeName:@"-h"
+                             type:ISArgumentParserTypeBool
                      defaultValue:@(NO)
                            action:ISArgumentParserActionStoreTrue
                       description:@"show this message and exit"];
@@ -76,18 +77,42 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
 }
 
 - (void)addArgumentWithName:(NSString *)name
+                description:(NSString *)description
+{
+    [self addArgumentWithName:name
+              alternativeName:nil
+                         type:ISArgumentParserTypeString
+                 defaultValue:nil
+                       action:ISArgumentParserActionStore
+                  description:description];
+}
+
+- (void)addArgumentWithName:(NSString *)name
+                       type:(ISArgumentParserType)type
+                description:(NSString *)description
+{
+    [self addArgumentWithName:name
+              alternativeName:nil
+                         type:type
+                 defaultValue:nil
+                       action:ISArgumentParserActionStore
+                  description:description];
+}
+
+- (void)addArgumentWithName:(NSString *)name
             alternativeName:(NSString *)alternativeName
+                       type:(ISArgumentParserType)type
                defaultValue:(id)defaultValue
                      action:(ISArgumentParserAction)action
                 description:(NSString *)description
 {
     // Construct the argument.
-    ISArgument *argument = [[ISArgument alloc] init];
-    argument.name = name;
-    argument.alternativeName = alternativeName;
-    argument.defaultValue = defaultValue;
-    argument.action = action;
-    argument.description = description;
+    ISArgument *argument = [[ISArgument alloc] initWithName:name
+                                            alternativeName:alternativeName
+                                                       type:type
+                                               defaultValue:defaultValue
+                                                     action:action
+                                                description:description];
     
     // TODO Check the validity of the argument.
     
@@ -148,16 +173,6 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
         [characters removeObjectAtIndex:0];
     }
     return [characters componentsJoinedByString:@""];
-}
-
-- (void)addArgumentWithName:(NSString *)name
-                description:(NSString *)description
-{
-    [self addArgumentWithName:name
-              alternativeName:nil
-                 defaultValue:nil
-                       action:ISArgumentParserActionStore
-                  description:description];
 }
 
 - (NSDictionary *)parseArguments:(NSArray *)arguments error:(NSError *__autoreleasing *)error

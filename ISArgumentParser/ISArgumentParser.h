@@ -28,6 +28,12 @@ typedef NS_ENUM(NSUInteger, ISArgumentParserAction) {
     ISArgumentParserActionStoreFalse,
 };
 
+typedef NS_ENUM(NSUInteger, ISArgumentParserType) {
+    ISArgumentParserTypeString,
+    ISArgumentParserTypeInteger,
+    ISArgumentParserTypeBool,
+};
+
 extern NSString *const ISArgumentParserErrorDomain;
 
 typedef NS_ENUM(NSUInteger, ISArgumentParserError) {
@@ -47,11 +53,15 @@ typedef NS_ENUM(NSUInteger, ISArgumentParserError) {
 - (instancetype)initWithDescription:(NSString *)description;
 
 - (void)addArgumentWithName:(NSString *)name
-            alternativeName:(NSString *)alternativeName
-               defaultValue:(id)defaultValue
-                     action:(ISArgumentParserAction)action
                 description:(NSString *)description;
 - (void)addArgumentWithName:(NSString *)name
+                       type:(ISArgumentParserType)type
+                description:(NSString *)description;
+- (void)addArgumentWithName:(NSString *)name
+            alternativeName:(NSString *)alternativeName
+                       type:(ISArgumentParserType)type
+               defaultValue:(id)defaultValue
+                     action:(ISArgumentParserAction)action
                 description:(NSString *)description;
 
 - (NSDictionary *)parseArguments:(NSArray *)arguments
