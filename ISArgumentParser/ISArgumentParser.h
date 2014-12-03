@@ -64,6 +64,8 @@ typedef NS_ENUM(NSUInteger, ISArgumentParserError) {
                      action:(ISArgumentParserAction)action
                 description:(NSString *)description;
 
+- (void)printUsage;
+
 - (NSDictionary *)parseArguments:(NSArray *)arguments
                            error:(NSError *__autoreleasing *)error;
 - (NSDictionary *)parseArgumentsWithCount:(int)count

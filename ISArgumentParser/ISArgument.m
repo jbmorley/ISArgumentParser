@@ -76,4 +76,13 @@
     return help;
 }
 
+- (NSString *)shortOptionString
+{
+    if (self.action == ISArgumentParserActionStore) {
+        return [NSString stringWithFormat:@"[%@ %@]", self.name, [self.name uppercaseString]];
+    } else {
+        return [NSString stringWithFormat:@"[%@]", self.name];
+    }
+}
+
 @end

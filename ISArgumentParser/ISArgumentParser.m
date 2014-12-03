@@ -66,8 +66,8 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
         _options = [NSMutableArray array];
         _prefixCharacters = @"-";
         
-        [self addArgumentWithName:@"--help"
-                  alternativeName:@"-h"
+        [self addArgumentWithName:@"-h"
+                  alternativeName:@"--help"
                              type:ISArgumentParserTypeBool
                      defaultValue:@(NO)
                            action:ISArgumentParserActionStoreTrue
@@ -237,6 +237,7 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
                         
                     } else {
                         
+                        [self printUsage:application];
                         fprintf(stderr,
                                 "%s: error: unsupported option '%s'\n",
                                 [application UTF8String],
@@ -277,6 +278,7 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
     
     ISAssert(state == StateScanning, @"Expecting more arguments :(");
     if (state != StateScanning) {
+        [self printUsage:application];
         fprintf(stderr, "%s: error: invalid arguments\n", [application UTF8String]);
         if (error) {
             *error = [NSError errorWithDomain:ISArgumentParserErrorDomain
@@ -301,6 +303,7 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
     
     // Check if there are too few positional arguments.
     if ([positionalArguments count] < [self.positionalArguments count]) {
+        [self printUsage:application];
         fprintf(stderr, "%s: error: too few arguments\n", [application UTF8String]);
         if (error) {
             *error = [NSError errorWithDomain:ISArgumentParserErrorDomain
@@ -318,6 +321,7 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
     
     // Check if there are unrecognized positional argumnets.
     if ([positionalArguments count] > 0) {
+        [self printUsage:application];
         fprintf(stderr, "%s: error: unrecognized arguments: %s\n",
                 [application UTF8String],
                 [[positionalArguments componentsJoinedByString:@" "] UTF8String]);
@@ -332,20 +336,37 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
     return options;
 }
 
+- (void)printUsage
+{
+    [self printUsage:nil];
+}
+
+- (void)printUsage:(NSString *)application
+{
+    NSString *usage = [self usage:application];
+    printf("%s\n", [usage UTF8String]);
+}
+
 - (NSString *)usage:(NSString *)application
 {
     NSMutableArray *options = [NSMutableArray arrayWithCapacity:[self.optionalArguments count]];
     
+    NSMutableString *usage = [NSMutableString string];
+    [usage appendString:@"usage: "];
+    
+    if (application) {
+        [usage appendFormat:@"%@: ", application];
+    }
+    
     for (ISArgument *argument in self.options) {
-        NSString *option = argument.alternativeName ? : argument.name;
-        [options addObject:[NSString stringWithFormat:@"[%@]", option]];
+        [options addObject:[argument shortOptionString]];
     }
     
     for (ISArgument *argument in self.positionalArguments) {
         [options addObject:argument.name];
     }
     
-    NSString *usage = [NSString stringWithFormat:@"usage: %@ %@", application, [options componentsJoinedByString:@" "]];
+    [usage appendString:[options componentsJoinedByString:@" "]];
     
     return usage;
 }

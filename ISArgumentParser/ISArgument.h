@@ -42,4 +42,6 @@
                       action:(ISArgumentParserAction)action
                  description:(NSString *)description;
 
+- (NSString *)shortOptionString;
+
 @end
