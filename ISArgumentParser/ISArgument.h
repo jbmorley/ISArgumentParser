@@ -24,24 +24,33 @@
 
 @interface ISArgument : NSObject
 
-@property (nonatomic, readonly, copy) NSString *name;
-@property (nonatomic, readonly, copy) NSString *alternativeName;
-@property (nonatomic, readonly, assign) ISArgumentParserType type;
-@property (nonatomic, readonly, copy) id defaultValue;
+@property (nonatomic, readonly, strong) NSString *name;
+@property (nonatomic, readonly, strong) NSString *alternativeName;
 @property (nonatomic, readonly, assign) ISArgumentParserAction action;
-@property (nonatomic, readonly, copy) NSString *description;
+@property (nonatomic, readonly, strong) id defaultValue;
+@property (nonatomic, readonly, strong) NSString *help;
+@property (nonatomic, readonly, assign) BOOL isOption;
 
-- (NSString *)help;
-
-// TODO init should be unused
++ (instancetype)new __attribute__((unavailable("new not available")));
+- (instancetype)init __attribute__((unavailable("init not available")));
 
 - (instancetype)initWithName:(NSString *)name
              alternativeName:(NSString *)alternativeName
-                        type:(ISArgumentParserType)type
-                defaultValue:(id)defaultValue
                       action:(ISArgumentParserAction)action
-                 description:(NSString *)description;
+                       nargs:(NSUInteger)nargs
+                  constValue:(id)constValue
+                defaultValue:(id)defaultValue
+                        type:(ISArgumentParserType)type
+                     choices:(NSArray *)choices
+                    required:(BOOL)required
+                        help:(NSString *)help
+                     metavar:(NSString *)metavar
+                        dest:(NSString *)help
+            prefixCharacters:(NSCharacterSet *)prefixCharacters;
 
-- (NSString *)shortOptionString;
+- (NSString *)destination;
+
+- (NSString *)summaryDefinition;
+- (NSString *)helpDefinition;
 
 @end

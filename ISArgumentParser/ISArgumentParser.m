@@ -35,6 +35,13 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
 @property (nonatomic, readonly, strong) NSMutableDictionary *optionalArguments;
 @property (nonatomic, readonly, strong) NSMutableArray *options;
 
+/**
+ * Set for tracking the requested argument destinations.
+ * 
+ * When new arguments are added we should check that their requested destination doesn't already exist.
+ */
+@property (nonatomic, readonly, strong) NSMutableSet *destinations;
+
 @end
 
 @implementation ISArgumentParser
@@ -64,115 +71,139 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
         _positionalArguments = [NSMutableArray array];
         _optionalArguments = [NSMutableDictionary dictionary];
         _options = [NSMutableArray array];
+        _destinations = [NSMutableSet set];
         _prefixCharacters = @"-";
         
         [self addArgumentWithName:@"-h"
                   alternativeName:@"--help"
-                             type:ISArgumentParserTypeBool
-                     defaultValue:@(NO)
                            action:ISArgumentParserActionStoreTrue
-                      description:@"show this message and exit"];
+                            nargs:1
+                       constValue:nil
+                     defaultValue:@NO
+                             type:ISArgumentParserTypeBool
+                          choices:nil
+                         required:YES
+                             help:@"show this message and exit"
+                          metavar:nil
+                             dest:@"help"];
     }
     return self;
 }
 
 - (void)addArgumentWithName:(NSString *)name
-                description:(NSString *)description
+                       help:(NSString *)help
 {
     [self addArgumentWithName:name
               alternativeName:nil
-                         type:ISArgumentParserTypeString
-                 defaultValue:nil
                        action:ISArgumentParserActionStore
-                  description:description];
+                        nargs:1
+                   constValue:nil
+                 defaultValue:nil
+                         type:ISArgumentParserTypeString
+                      choices:nil
+                     required:YES
+                         help:help
+                      metavar:nil
+                         dest:nil];
 }
 
 - (void)addArgumentWithName:(NSString *)name
                        type:(ISArgumentParserType)type
-                description:(NSString *)description
+                       help:(NSString *)help
 {
     [self addArgumentWithName:name
               alternativeName:nil
-                         type:type
-                 defaultValue:nil
                        action:ISArgumentParserActionStore
-                  description:description];
+                        nargs:1
+                   constValue:nil
+                 defaultValue:nil
+                         type:type
+                      choices:nil
+                     required:YES
+                         help:help
+                      metavar:nil
+                         dest:nil];
+}
+
+- (void)registerArgument:(ISArgument *)argument
+                 forFlag:(NSString *)flag
+{
+    ISArgument *existing = self.optionalArguments[flag];
+    if (existing) {
+        @throw [NSException exceptionWithName:@"" reason:@"" userInfo:nil];
+    }
+    self.optionalArguments[flag] = argument;
 }
 
 - (void)addArgumentWithName:(NSString *)name
             alternativeName:(NSString *)alternativeName
-                       type:(ISArgumentParserType)type
-               defaultValue:(id)defaultValue
                      action:(ISArgumentParserAction)action
-                description:(NSString *)description
+               defaultValue:(id)defaultValue
+                       type:(ISArgumentParserType)type
+                       help:(NSString *)help
+{
+    [self addArgumentWithName:name
+              alternativeName:alternativeName
+                       action:action
+                        nargs:1
+                   constValue:nil
+                 defaultValue:defaultValue
+                         type:type
+                      choices:nil
+                     required:YES
+                         help:help
+                      metavar:nil
+                         dest:nil];
+}
+
+- (void)addArgumentWithName:(NSString *)name
+            alternativeName:(NSString *)alternativeName
+                     action:(ISArgumentParserAction)action
+                      nargs:(NSUInteger)nargs
+                 constValue:(id)constValue
+               defaultValue:(id)defaultValue
+                       type:(ISArgumentParserType)type
+                    choices:(NSArray *)choices
+                   required:(BOOL)required
+                       help:(NSString *)help
+                    metavar:(NSString *)metavar
+                       dest:(NSString *)dest
 {
     // Construct the argument.
+    NSCharacterSet *prefixCharacters = [NSCharacterSet characterSetWithCharactersInString:self.prefixCharacters];
     ISArgument *argument = [[ISArgument alloc] initWithName:name
                                             alternativeName:alternativeName
-                                                       type:type
-                                               defaultValue:defaultValue
                                                      action:action
-                                                description:description];
+                                                      nargs:nargs
+                                                 constValue:constValue
+                                               defaultValue:defaultValue
+                                                       type:type
+                                                    choices:choices
+                                                   required:required
+                                                       help:help
+                                                    metavar:metavar
+                                                       dest:dest
+                                           prefixCharacters:prefixCharacters];
     
-    // TODO Check the validity of the argument.
-    
-    // TODO Check for name clashes. Especially between positional and non positional arguments.
-    
-    // Determine the type of the argument by checking if it begins with a prefix.
-    NSArray *prefixes = [self.prefixCharacters componentsSeparatedByString:@""];
-    BOOL optional = NO;
-    for (NSString *prefix in prefixes) {
-        NSRange prefixRange = [argument.name rangeOfString:prefix];
-        if (prefixRange.location == 0) {
-            optional = YES;
-            break;
-        }
+    // Check that the argument destination doesn't already exist.
+    if ([self.destinations containsObject:[argument destination]]) {
+        @throw [NSException exceptionWithName:@"" reason:@"" userInfo:nil];
     }
     
+    // Add the argument to the list of all arguments.
     [self.allArguments addObject:argument];
 
     // Store the argument.
-    if (optional) {
-        
-        // TODO Check for duplicate arguments.
-        
-        self.optionalArguments[argument.name] = argument;
+    if (argument.isOption) {
+        [self registerArgument:argument forFlag:argument.name];
         if (argument.alternativeName) {
-            self.optionalArguments[argument.alternativeName] = argument;
+            [self registerArgument:argument forFlag:argument.alternativeName];
         }
-        
         [self.options addObject:argument];
-        
     } else {
-        
         [self.positionalArguments addObject:argument];
-        
     }
 
-}
-
-- (NSArray *)characters:(NSString *)string
-{
-    NSMutableArray *characters = [NSMutableArray arrayWithCapacity:[string length]];
-    for (NSUInteger i = 0; i < [string length]; i++) {
-        unichar character = [string characterAtIndex:i];
-        [characters addObject:[NSString stringWithCharacters:&character length:1]];
-    }
-    return characters;
-}
-
-- (NSString *)removePrefixesFromOptionWithName:(NSString *)name
-{
-    NSSet *prefixes = [NSSet setWithArray:[self.prefixCharacters componentsSeparatedByString:@""]];
-    NSMutableArray *characters = [[self characters:name] mutableCopy];
-    while ([characters count] > 0) {
-        NSString *character = [characters objectAtIndex:0];
-        if (![prefixes containsObject:character]) {
-            break;
-        }
-        [characters removeObjectAtIndex:0];
-    }
-    return [characters componentsJoinedByString:@""];
 }
 
 - (NSDictionary *)parseArguments:(NSArray *)arguments error:(NSError *__autoreleasing *)error
@@ -185,7 +216,7 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
     // These will be replaced when we parse the arguments themselves.
     for (ISArgument *argument in self.allArguments) {
         if (argument.defaultValue != nil) {
-            options[[self removePrefixesFromOptionWithName:argument.name]] = argument.defaultValue;
+            options[[argument destination]] = argument.defaultValue;
         }
     }
     
@@ -200,7 +231,6 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
     const int StateExpectSingle = 1;
     
     ISArgument *activeOption = nil;
-    NSString *activeName = nil;
     
     int state = StateScanning;
 
@@ -217,22 +247,19 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
                 ISArgument *option = self.optionalArguments[argument];
                 if (option) {
                     
-                    NSString *name = [self removePrefixesFromOptionWithName:option.name];
-                    
                     if (option.action == ISArgumentParserActionStore) {
                         
                         activeOption = option;
-                        activeName = name;
                         state = StateExpectSingle;
                         
                     } else if (option.action == ISArgumentParserActionStoreTrue) {
                         
-                        options[name] = @YES;
+                        options[[option destination]] = @YES;
                         state = StateScanning;
                         
                     } else if (option.action == ISArgumentParserActionStoreFalse) {
                         
-                        options[name] = @NO;
+                        options[[option destination]] = @NO;
                         state = StateScanning;
                         
                     } else {
@@ -262,9 +289,8 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
             }
             case StateExpectSingle: {
                 
-                options[activeName] = argument;
+                options[[activeOption destination]] = argument;
                 activeOption = nil;
-                activeName = nil;
                 state = StateScanning;
                 
                 break;
@@ -295,7 +321,7 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
     }
     
     // Help is a special key so once we've processed it we remove it from the options.
-    [options removeObjectForKey:@"h"];
+    [options removeObjectForKey:@"help"];
 
     // Process the remaining positional arguments.
     
@@ -358,14 +384,10 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
         [usage appendFormat:@"%@: ", application];
     }
     
-    for (ISArgument *argument in self.options) {
-        [options addObject:[argument shortOptionString]];
+    for (ISArgument *argument in self.allArguments) {
+        [options addObject:[argument summaryDefinition]];
     }
-    
-    for (ISArgument *argument in self.positionalArguments) {
-        [options addObject:argument.name];
-    }
-    
+        
     [usage appendString:[options componentsJoinedByString:@" "]];
     
     return usage;
@@ -386,12 +408,12 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
 {
     NSMutableArray *options = [NSMutableArray array];
     for (ISArgument *argument in self.options) {
-        [options addObject:[argument help]];
+        [options addObject:[NSString stringWithFormat:@"  %@    %@", [argument helpDefinition], argument.help]];
     }
 
     NSMutableArray *positionals = [NSMutableArray array];
     for (ISArgument *argument in self.positionalArguments) {
-        [positionals addObject:[argument help]];
+        [positionals addObject:[NSString stringWithFormat:@"  %@    %@", [argument helpDefinition], argument.help]];
     }
     
     NSString *help = [NSString stringWithFormat:

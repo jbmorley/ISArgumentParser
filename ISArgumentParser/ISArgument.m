@@ -26,35 +26,83 @@
 
 @interface ISArgument ()
 
+@property (nonatomic, readonly, assign) NSUInteger nargs;
+@property (nonatomic, readonly, strong) id constValue;
+@property (nonatomic, readonly, assign) ISArgumentParserType type;
+@property (nonatomic, readonly, strong) NSArray *choices;
+@property (nonatomic, readonly, assign) BOOL required;
+@property (nonatomic, readonly, strong) NSString *metavar;
+@property (nonatomic, readonly, strong) NSString *dest;
+
+@property (nonatomic, readonly, strong) NSCharacterSet *prefixCharacters;
+
 @end
 
 @implementation ISArgument
 
 - (instancetype)initWithName:(NSString *)name
              alternativeName:(NSString *)alternativeName
-                        type:(ISArgumentParserType)type
-                defaultValue:(id)defaultValue
                       action:(ISArgumentParserAction)action
-                 description:(NSString *)description
+                       nargs:(NSUInteger)nargs
+                  constValue:(id)constValue
+                defaultValue:(id)defaultValue
+                        type:(ISArgumentParserType)type
+                     choices:(NSArray *)choices
+                    required:(BOOL)required
+                        help:(NSString *)help
+                     metavar:(NSString *)metavar
+                        dest:(NSString *)dest
+            prefixCharacters:(NSCharacterSet *)prefixCharacters
 {
     self = [super init];
     if (self) {
         _name = name;
         _alternativeName = alternativeName;
-        _type = type;
-        _defaultValue = defaultValue;
         _action = action;
-        _description = description;
+        _nargs = nargs;
+        _constValue = constValue;
+        _defaultValue = defaultValue;
+        _type = type;
+        _choices = choices;
+        _required = required;
+        _help = help;
+        _metavar = metavar;
+        _dest = dest;
+        _prefixCharacters = prefixCharacters;
+        
+        // Check the name.
+        if (_name == nil) {
+            @throw [NSException exceptionWithName:@"" reason:@"" userInfo:nil];
+        }
+        
+        // Determine whether the argument is an option or not.
+        NSRange prefixRange = [self.name rangeOfCharacterFromSet:self.prefixCharacters];
+        _isOption = (prefixRange.location == 0);
+        
+        // Alternative names are only valid with options.
+        if (!_isOption && _alternativeName != nil) {
+            @throw [NSException exceptionWithName:@"" reason:@"" userInfo:nil];
+        }
+        
+        // TODO Check the validity of the argument.
         
         // Check that the defualt value is of the correct type if one is set.
         if (_defaultValue) {
             if (_type == ISArgumentParserTypeString) {
-                ISAssert([_defaultValue isKindOfClass:[NSString class]], @"Default argument isn't of type NSString.");
+                
+                if (![_defaultValue isKindOfClass:[NSString class]]) {
+                    @throw [NSException exceptionWithName:@"" reason:@"" userInfo:nil];
+                }
+                
             } else if (_type == ISArgumentParserTypeInteger ||
                        _type == ISArgumentParserTypeBool) {
-                ISAssert([_defaultValue isKindOfClass:[NSNumber class]], @"Default argument isn't of type NSNumber.");
+                
+                if (![_defaultValue isKindOfClass:[NSNumber class]]) {
+                    @throw [NSException exceptionWithName:@"" reason:@"" userInfo:nil];
+                }
+                
             } else {
-                ISAssertUnreached(@"Unknown type (%d).", _type);
+                @throw [NSException exceptionWithName:@"" reason:@"" userInfo:nil];
             }
         }
         
@@ -62,26 +110,63 @@
     return self;
 }
 
-- (NSString *)help
+- (NSString *)nameWithoutPrefix
 {
-    NSMutableString *help = [NSMutableString string];
-    [help appendString:@"  "];
-    [help appendString:self.name];
-    if (self.alternativeName) {
-        [help appendString:@", "];
-        [help appendString:self.alternativeName];
-    }
-    [help appendString:@"  "];
-    [help appendString:self.description];
-    return help;
+    return [self stripPrefixes:self.name];
 }
 
-- (NSString *)shortOptionString
+- (NSString *)destination
+{
+    if (self.dest) {
+        return self.dest;
+    } else {
+        return [self nameWithoutPrefix];
+    }
+}
+
+- (NSString *)summaryDefinition
+{
+    if (self.isOption) {
+        if (self.action == ISArgumentParserActionStore) {
+            return [NSString stringWithFormat:@"[%@ %@]", self.name, [[self nameWithoutPrefix] uppercaseString]];
+        } else {
+            return [NSString stringWithFormat:@"[%@]", self.name];
+        }
+    } else {
+        return [self destination];
+    }
+}
+
+- (NSString *)stripPrefixes:(NSString *)string
+{
+    NSString *result = [string copy];
+    NSRange prefixRange = [result rangeOfCharacterFromSet:self.prefixCharacters];
+    while (prefixRange.location == 0) {
+        result = [result substringFromIndex:prefixRange.location + 1];
+        prefixRange = [result rangeOfCharacterFromSet:self.prefixCharacters];
+    }
+    return result;
+}
+
+- (NSString *)helpDefinitionForFlag:(NSString *)flag
 {
     if (self.action == ISArgumentParserActionStore) {
-        return [NSString stringWithFormat:@"[%@ %@]", self.name, [self.name uppercaseString]];
+        return [NSString stringWithFormat:@"%@ %@", flag, [[self stripPrefixes:flag] uppercaseString]];
     } else {
-        return [NSString stringWithFormat:@"[%@]", self.name];
+        return [NSString stringWithFormat:@"%@", flag];
+    }
+}
+
+- (NSString *)helpDefinition
+{
+    if (self.isOption) {
+        NSMutableString *definition = [NSMutableString stringWithString:[self helpDefinitionForFlag:self.name]];
+        if (self.alternativeName) {
+            [definition appendFormat:@", %@", [self helpDefinitionForFlag:self.alternativeName]];
+        }
+        return definition;
+    } else {
+        return self.name;
     }
 }
 

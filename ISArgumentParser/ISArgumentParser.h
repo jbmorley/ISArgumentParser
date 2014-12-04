@@ -47,22 +47,52 @@ typedef NS_ENUM(NSUInteger, ISArgumentParserError) {
 
 @property (nonatomic, readwrite, copy) NSString *prefixCharacters;
 
++ (instancetype)new __attribute__((unavailable("new not available")));
+- (instancetype)init __attribute__((unavailable("init not available")));
+
 + (NSArray *)argumentsWithCount:(int)count vector:(const char **)vector;
 
 + (instancetype)argumentParserWithDescription:(NSString *)description;
 - (instancetype)initWithDescription:(NSString *)description;
 
 - (void)addArgumentWithName:(NSString *)name
-                description:(NSString *)description;
+                       help:(NSString *)help;
 - (void)addArgumentWithName:(NSString *)name
                        type:(ISArgumentParserType)type
-                description:(NSString *)description;
+                       help:(NSString *)help;
 - (void)addArgumentWithName:(NSString *)name
             alternativeName:(NSString *)alternativeName
-                       type:(ISArgumentParserType)type
-               defaultValue:(id)defaultValue
                      action:(ISArgumentParserAction)action
-                description:(NSString *)description;
+               defaultValue:(id)defaultValue
+                       type:(ISArgumentParserType)type
+                       help:(NSString *)help;
+
+/**
+ * @param name or flags - Either a name or a list of option strings, e.g. foo or -f, --foo.
+ * @param alternativeName
+ * @param action The basic type of action to be taken when this argument is encountered at the command line.
+ * @param nargs The number of command-line arguments that should be consumed.
+ * @param constValue A constant value required by some action and nargs selections.
+ * @param defaultValue The value produced if the argument is absent from the command line.
+ * @param type The type to which the command-line argument should be converted.
+ * @param choices A container of the allowable values for the argument.
+ * @param required Whether or not the command-line option may be omitted (optionals only).
+ * @param help A brief description of what the argument does.
+ * @param metavar A name for the argument in usage messages.
+ * @param dest The name of the attribute to be added to the object returned by `parseArguments:`.
+ */
+- (void)addArgumentWithName:(NSString *)name
+            alternativeName:(NSString *)alternativeName
+                     action:(ISArgumentParserAction)action
+                      nargs:(NSUInteger)nargs
+                 constValue:(id)constValue
+               defaultValue:(id)defaultValue
+                       type:(ISArgumentParserType)type
+                    choices:(NSArray *)choices
+                   required:(BOOL)required
+                       help:(NSString *)help
+                    metavar:(NSString *)metavar
+                       dest:(NSString *)dest;
 
 - (void)printUsage;
 - (void)printHelp;
