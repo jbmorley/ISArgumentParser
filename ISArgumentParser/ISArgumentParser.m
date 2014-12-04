@@ -315,7 +315,7 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
     }
     
     // Check to see if the user has asked for help.
-    if ([options[@"h"] boolValue]) {
+    if ([options[@"help"] boolValue]) {
         [self printHelp:application];
         return nil;
     }
@@ -362,6 +362,11 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
     return options;
 }
 
+- (NSString *)usage
+{
+    return [self usage:nil];
+}
+
 - (void)printUsage
 {
     [self printUsage:nil];
@@ -384,9 +389,14 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
         [usage appendFormat:@"%@: ", application];
     }
     
-    for (ISArgument *argument in self.allArguments) {
+    for (ISArgument *argument in self.options) {
         [options addObject:[argument summaryDefinition]];
     }
+    
+    for (ISArgument *argument in self.positionalArguments) {
+        [options addObject:[argument summaryDefinition]];
+    }
+
         
     [usage appendString:[options componentsJoinedByString:@" "]];
     

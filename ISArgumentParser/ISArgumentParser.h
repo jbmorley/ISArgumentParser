@@ -94,6 +94,8 @@ typedef NS_ENUM(NSUInteger, ISArgumentParserError) {
                     metavar:(NSString *)metavar
                        dest:(NSString *)dest;
 
+- (NSString *)usage;
+
 - (void)printUsage;
 - (void)printHelp;
 

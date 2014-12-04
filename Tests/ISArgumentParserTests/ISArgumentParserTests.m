@@ -194,4 +194,21 @@
     [self.parser printHelp];
 }
 
+- (void)testUsageOrdering
+{
+    [self.parser addArgumentWithName:@"positional"
+                     alternativeName:nil
+                              action:ISArgumentParserActionStore
+                        defaultValue:nil
+                                type:ISArgumentParserTypeString
+                                help:@"a positional argument"];
+    [self.parser addArgumentWithName:@"--option"
+                     alternativeName:@"-o"
+                              action:ISArgumentParserActionStore
+                        defaultValue:nil
+                                type:ISArgumentParserTypeString
+                                help:@"an optional argument"];
+    XCTAssertEqualObjects([self.parser usage], @"usage: [-h] [--option OPTION] positional");
+}
+
 @end
