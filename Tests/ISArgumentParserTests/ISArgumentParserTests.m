@@ -33,10 +33,12 @@
 {
     [self.parser addArgumentWithName:@"argument1"
                      alternativeName:nil
+                                type:ISArgumentParserTypeString
                         defaultValue:nil
                               action:ISArgumentParserActionStore
                          description:@"first argument"];
-    NSDictionary *options = [self.parser parseArguments:@[@"application", @"value1"]];
+    NSError *error = nil;
+    NSDictionary *options = [self.parser parseArguments:@[@"application", @"value1"] error:&error];
     XCTAssertEqualObjects(options, @{@"argument1": @"value1"}, @"Unexpected argument results.");
 }
 
@@ -44,21 +46,26 @@
 {
     [self.parser addArgumentWithName:@"argument1"
                      alternativeName:nil
+                                type:ISArgumentParserTypeString
                         defaultValue:nil
                               action:ISArgumentParserActionStore
                          description:@"first argument"];
     [self.parser addArgumentWithName:@"argument2"
                      alternativeName:nil
+                                type:ISArgumentParserTypeString
                         defaultValue:nil
                               action:ISArgumentParserActionStore
                          description:@"second argument"];
     [self.parser addArgumentWithName:@"argument3"
                      alternativeName:nil
+                                type:ISArgumentParserTypeString
                         defaultValue:nil
                               action:ISArgumentParserActionStore
                          description:@"third argument"];
 
-    NSDictionary *options = [self.parser parseArguments:@[@"application", @"value1", @"value2", @"value3"]];
+    NSError *error = nil;
+    NSDictionary *options = [self.parser parseArguments:@[@"application", @"value1", @"value2", @"value3"]
+                                                  error:&error];
     NSDictionary *expected = @{@"argument1": @"value1",
                                @"argument2": @"value2",
                                @"argument3": @"value3"};
@@ -76,10 +83,12 @@
 {
     [self.parser addArgumentWithName:@"--flag"
                      alternativeName:nil
+                                type:ISArgumentParserTypeBool
                         defaultValue:nil
                               action:ISArgumentParserActionStoreTrue
                          description:@"boolean flag"];
-    NSDictionary *options = [self.parser parseArguments:@[@"application", @"--flag"]];
+    NSError *error = nil;
+    NSDictionary *options = [self.parser parseArguments:@[@"application", @"--flag"] error:&error];
     XCTAssertEqualObjects(options, @{@"flag": @YES}, @"Unexpected argument results.");
 }
 
@@ -87,10 +96,12 @@
 {
     [self.parser addArgumentWithName:@"--flag"
                      alternativeName:nil
+                                type:ISArgumentParserTypeBool
                         defaultValue:nil
                               action:ISArgumentParserActionStoreTrue
                          description:@"boolean flag"];
-    NSDictionary *options = [self.parser parseArguments:@[@"application"]];
+    NSError *error = nil;
+    NSDictionary *options = [self.parser parseArguments:@[@"application"] error:&error];
     XCTAssertEqualObjects(options, @{}, @"Unexpected argument results.");
 }
 
@@ -98,10 +109,12 @@
 {
     [self.parser addArgumentWithName:@"--flag"
                      alternativeName:nil
+                                type:ISArgumentParserTypeBool
                         defaultValue:@NO
                               action:ISArgumentParserActionStoreTrue
                          description:@"boolean flag"];
-    NSDictionary *options = [self.parser parseArguments:@[@"application", @"--flag"]];
+    NSError *error = nil;
+    NSDictionary *options = [self.parser parseArguments:@[@"application", @"--flag"] error:&error];
     XCTAssertEqualObjects(options, @{@"flag": @YES}, @"Unexpected argument results.");
 }
 
@@ -109,10 +122,12 @@
 {
     [self.parser addArgumentWithName:@"--flag"
                      alternativeName:nil
+                                type:ISArgumentParserTypeBool
                         defaultValue:@NO
                               action:ISArgumentParserActionStoreTrue
                          description:@"boolean flag"];
-    NSDictionary *options = [self.parser parseArguments:@[@"application"]];
+    NSError *error = nil;
+    NSDictionary *options = [self.parser parseArguments:@[@"application"] error:&error];
     XCTAssertEqualObjects(options, @{@"flag": @NO}, @"Unexpected argument results.");
 }
 
@@ -120,10 +135,12 @@
 {
     [self.parser addArgumentWithName:@"--flag"
                      alternativeName:@"-f"
+                                type:ISArgumentParserTypeBool
                         defaultValue:nil
                               action:ISArgumentParserActionStoreTrue
                          description:@"boolean flag"];
-    NSDictionary *options = [self.parser parseArguments:@[@"application", @"-f"]];
+    NSError *error = nil;
+    NSDictionary *options = [self.parser parseArguments:@[@"application", @"-f"] error:&error];
     XCTAssertEqualObjects(options, @{@"flag": @YES}, @"Unexpected argument results.");
 }
 
@@ -131,10 +148,12 @@
 {
     [self.parser addArgumentWithName:@"--flag"
                      alternativeName:@"-f"
+                                type:ISArgumentParserTypeBool
                         defaultValue:nil
                               action:ISArgumentParserActionStoreTrue
                          description:@"boolean flag"];
-    NSDictionary *options = [self.parser parseArguments:@[@"application"]];
+    NSError *error = nil;
+    NSDictionary *options = [self.parser parseArguments:@[@"application"] error:&error];
     XCTAssertEqualObjects(options, @{}, @"Unexpected argument results.");
 }
 
@@ -142,23 +161,26 @@
 {
     [self.parser addArgumentWithName:@"--optional"
                      alternativeName:nil
+                                type:ISArgumentParserTypeString
                         defaultValue:nil
                               action:ISArgumentParserActionStore
                          description:@"some optional argument"];
-    NSDictionary *options = [self.parser parseArguments:@[@"application", @"--optional", @"value"]];
+    NSError *error = nil;
+    NSDictionary *options = [self.parser parseArguments:@[@"application", @"--optional", @"value"] error:&error];
     NSDictionary *expected = @{@"optional": @"value"};
     XCTAssertEqualObjects(options, expected, @"Unexpected argument results");
-    [self.parser help];
+    [self.parser printHelp];
 }
 
 - (void)testHelp
 {
     [self.parser addArgumentWithName:@"url"
                      alternativeName:nil
+                                type:ISArgumentParserTypeString
                         defaultValue:nil
                               action:ISArgumentParserActionStore
                          description:@"the url to download"];
-    [self.parser help];
+    [self.parser printHelp];
 }
 
 @end

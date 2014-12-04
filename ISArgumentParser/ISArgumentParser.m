@@ -289,13 +289,13 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
     }
     
     // Check to see if the user has asked for help.
-    if ([options[@"help"] boolValue]) {
-        [self help:application];
+    if ([options[@"h"] boolValue]) {
+        [self printHelp:application];
         return nil;
     }
     
     // Help is a special key so once we've processed it we remove it from the options.
-    [options removeObjectForKey:@"help"];
+    [options removeObjectForKey:@"h"];
 
     // Process the remaining positional arguments.
     
@@ -371,7 +371,18 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
     return usage;
 }
 
-- (void)help:(NSString *)application
+- (void)printHelp
+{
+    [self printHelp:nil];
+}
+
+- (void)printHelp:(NSString *)application
+{
+    NSString *help = [self help:application];
+    printf("%s\n", [help UTF8String]);
+}
+
+- (NSString *)help:(NSString *)application
 {
     NSMutableArray *options = [NSMutableArray array];
     for (ISArgument *argument in self.options) {
@@ -398,7 +409,7 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
                       [positionals componentsJoinedByString:@"\n"],
                       [options componentsJoinedByString:@"\n"]];
     
-    printf("%s\n", [help UTF8String]);
+    return help;
 }
 
 - (NSDictionary *)parseArgumentsWithCount:(int)count
