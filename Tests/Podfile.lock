@@ -6,16 +6,13 @@ PODS:
 
 DEPENDENCIES:
   - ISArgumentParser (from `..`)
-  - ISUtilities (from `../../../../shows/dependencies/ISUtilities`)
 
 EXTERNAL SOURCES:
   ISArgumentParser:
     :path: ..
-  ISUtilities:
-    :path: ../../../../shows/dependencies/ISUtilities
 
 SPEC CHECKSUMS:
   ISArgumentParser: 454077275415fed2d3741c66c839f5c5c4701405
-  ISUtilities: f2bec2f75608e4391013b5e62a5f1db30339bd39
+  ISUtilities: 54a87bc8a165765eaaaeb55b44b0ac8b4ed091dd
 
 COCOAPODS: 0.35.0
