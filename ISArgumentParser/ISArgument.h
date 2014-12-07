@@ -27,6 +27,7 @@
 @property (nonatomic, readonly, strong) NSString *name;
 @property (nonatomic, readonly, strong) NSString *alternativeName;
 @property (nonatomic, readonly, assign) ISArgumentParserAction action;
+@property (nonatomic, readonly, assign) ISArgumentParserNumber number;
 @property (nonatomic, readonly, strong) id defaultValue;
 @property (nonatomic, readonly, strong) NSString *help;
 @property (nonatomic, readonly, assign) BOOL isOption;
@@ -37,7 +38,7 @@
 - (instancetype)initWithName:(NSString *)name
              alternativeName:(NSString *)alternativeName
                       action:(ISArgumentParserAction)action
-                       nargs:(NSUInteger)nargs
+                      number:(ISArgumentParserNumber)number
                   constValue:(id)constValue
                 defaultValue:(id)defaultValue
                         type:(ISArgumentParserType)type

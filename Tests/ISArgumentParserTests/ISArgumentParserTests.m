@@ -81,12 +81,10 @@
 
 - (void)testBooleanFlagSet
 {
-    [self.parser addArgumentWithName:@"--flag"
-                     alternativeName:nil
-                              action:ISArgumentParserActionStoreTrue
-                        defaultValue:nil
-                                type:ISArgumentParserTypeBool
-                                help:@"boolean flag"];
+    [self.parser addArgumentWithDictionary:@{@"name": @"--flag",
+                                             @"action": @(ISArgumentParserActionStoreTrue),
+                                             @"help": @"boolean flag",
+                                             @"type": @(ISArgumentParserTypeBool)}];
     NSError *error = nil;
     NSDictionary *options = [self.parser parseArguments:@[@"application", @"--flag"] error:&error];
     XCTAssertEqualObjects(options, @{@"flag": @YES}, @"Unexpected argument results.");
@@ -174,13 +172,40 @@
 
 - (void)testOneOrMoreArguments
 {
-//    [self.parser addArgumentWithName:@"filename"
-//                     alternativeName:nil
-//                                type:ISArgumentParserTypeString
-//                        defaultValue:nil
-//                              action:ISArgumentParserActionStore
-//                               nargs:"+"
-//                         description:@""]
+    [self.parser addArgumentWithDictionary:@{@"name": @"filename",
+                                             @"number": @(ISArgumentParserNumberOneOrMore),
+                                             @"help": @"boolean flag"}];
+    NSError *error = nil;
+    NSDictionary *options = [self.parser parseArguments:@[@"application", @"/tmp/file1", @"/tmp/file2"] error:&error];
+    NSDictionary *expected = @{@"filename": @[@"/tmp/file1", @"/tmp/file2"]};
+    XCTAssertEqualObjects(options, expected, @"Unexpected argument results.");
+}
+
+- (void)testOneOrMoreFlags
+{
+    [self.parser addArgumentWithDictionary:@{@"name": @"--filename",
+                                             @"number": @(ISArgumentParserNumberOneOrMore),
+                                             @"help": @"boolean flag"}];
+    NSError *error = nil;
+    NSDictionary *options = [self.parser parseArguments:@[@"application", @"--filename", @"/tmp/file1", @"/tmp/file2"] error:&error];
+    NSDictionary *expected = @{@"filename": @[@"/tmp/file1", @"/tmp/file2"]};
+    XCTAssertEqualObjects(options, expected, @"Unexpected argument results.");
+}
+
+#pragma mark - Usage
+
+- (void)testUsageOneOrMoreArguments
+{
+    [self.parser addArgumentWithDictionary:@{@"name": @"filename",
+                                             @"number": @(ISArgumentParserNumberOneOrMore)}];
+    XCTAssertEqualObjects([self.parser usage], @"usage: [-h] filename [filename ...]");
+}
+
+- (void)testUsageZeroOrOneArguments
+{
+    [self.parser addArgumentWithDictionary:@{@"name": @"filename",
+                                             @"number": @(ISArgumentParserNumberZeroOrOne)}];
+    XCTAssertEqualObjects([self.parser usage], @"usage: [-h] [filename]");
 }
 
 - (void)testHelp

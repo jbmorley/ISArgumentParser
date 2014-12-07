@@ -43,6 +43,14 @@ typedef NS_ENUM(NSUInteger, ISArgumentParserError) {
     ISArgumentPArserErrorUnrecognizedArguments,
 };
 
+typedef NS_ENUM(NSUInteger, ISArgumentParserNumber) {
+    ISArgumentParserNumberDefault = NSUIntegerMax,
+    ISArgumentParserNumberOneOrMore = NSUIntegerMax - 1,
+    ISArgumentParserNumberZeroOrOne = NSUIntegerMax - 2,
+    ISArgumentParserNumberAll = NSUIntegerMax - 3,
+    ISArgumentParserNumberRemainder = NSUIntegerMax - 4,
+};
+
 @interface ISArgumentParser : NSObject
 
 @property (nonatomic, readwrite, copy) NSString *prefixCharacters;
@@ -71,7 +79,7 @@ typedef NS_ENUM(NSUInteger, ISArgumentParserError) {
  * @param name or flags - Either a name or a list of option strings, e.g. foo or -f, --foo.
  * @param alternativeName
  * @param action The basic type of action to be taken when this argument is encountered at the command line.
- * @param nargs The number of command-line arguments that should be consumed.
+ * @param number The number of command-line arguments that should be consumed.
  * @param constValue A constant value required by some action and nargs selections.
  * @param defaultValue The value produced if the argument is absent from the command line.
  * @param type The type to which the command-line argument should be converted.
@@ -84,7 +92,7 @@ typedef NS_ENUM(NSUInteger, ISArgumentParserError) {
 - (void)addArgumentWithName:(NSString *)name
             alternativeName:(NSString *)alternativeName
                      action:(ISArgumentParserAction)action
-                      nargs:(NSUInteger)nargs
+                     number:(ISArgumentParserNumber)number
                  constValue:(id)constValue
                defaultValue:(id)defaultValue
                        type:(ISArgumentParserType)type
@@ -93,6 +101,8 @@ typedef NS_ENUM(NSUInteger, ISArgumentParserError) {
                        help:(NSString *)help
                     metavar:(NSString *)metavar
                        dest:(NSString *)dest;
+
+- (void)addArgumentWithDictionary:(NSDictionary *)dictionary;
 
 - (NSString *)usage;
 

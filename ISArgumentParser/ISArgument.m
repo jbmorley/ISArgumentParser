@@ -26,7 +26,6 @@
 
 @interface ISArgument ()
 
-@property (nonatomic, readonly, assign) NSUInteger nargs;
 @property (nonatomic, readonly, strong) id constValue;
 @property (nonatomic, readonly, assign) ISArgumentParserType type;
 @property (nonatomic, readonly, strong) NSArray *choices;
@@ -43,7 +42,7 @@
 - (instancetype)initWithName:(NSString *)name
              alternativeName:(NSString *)alternativeName
                       action:(ISArgumentParserAction)action
-                       nargs:(NSUInteger)nargs
+                      number:(ISArgumentParserNumber)number
                   constValue:(id)constValue
                 defaultValue:(id)defaultValue
                         type:(ISArgumentParserType)type
@@ -59,7 +58,7 @@
         _name = name;
         _alternativeName = alternativeName;
         _action = action;
-        _nargs = nargs;
+        _number = number;
         _constValue = constValue;
         _defaultValue = defaultValue;
         _type = type;
@@ -127,14 +126,28 @@
 - (NSString *)summaryDefinition
 {
     if (self.isOption) {
+        
         if (self.action == ISArgumentParserActionStore) {
             return [NSString stringWithFormat:@"[%@ %@]", self.name, [[self nameWithoutPrefix] uppercaseString]];
         } else {
             return [NSString stringWithFormat:@"[%@]", self.name];
         }
+        
     } else {
-        return [self destination];
+        
+        if (self.number == ISArgumentParserNumberDefault) {
+            return [self name];
+        } else if (self.number == ISArgumentParserNumberOneOrMore) {
+            return [NSString stringWithFormat:@"%@ [%@ ...]", [self name], [self name]];
+        } else if (self.number == ISArgumentParserNumberZeroOrOne) {
+            return [NSString stringWithFormat:@"[%@]", [self name]];
+        } else {
+            ISAssertUnreached(@"Unsupported number of arguments.");
+        }
+        
     }
+    
+    return nil;
 }
 
 - (NSString *)stripPrefixes:(NSString *)string
