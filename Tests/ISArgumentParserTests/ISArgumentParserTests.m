@@ -29,6 +29,24 @@
     [super tearDown];
 }
 
+- (NSDictionary *)parseArguments:(NSString *)string
+{
+    NSError *error = nil;
+    NSMutableArray *arguments = [NSMutableArray array];
+    [arguments addObject:@"application"];
+    if ([string length] > 0) {
+        [arguments addObjectsFromArray:[string componentsSeparatedByString:@" "]];
+    }
+    return [self.parser parseArguments:arguments error:&error];
+}
+
+- (NSDictionary *)assertParseArguments:(NSString *)arguments
+                       expectedOptions:(NSDictionary *)expectedOptions
+{
+    NSDictionary *options = [self parseArguments:arguments];
+    XCTAssertEqualObjects(options, expectedOptions, @"Unexpected argument results.");
+}
+
 - (void)testSingleArgument
 {
     [self.parser addArgumentWithName:@"argument1"
@@ -37,39 +55,19 @@
                         defaultValue:nil
                                 type:ISArgumentParserTypeString
                                 help:@"first argument"];
-    NSError *error = nil;
-    NSDictionary *options = [self.parser parseArguments:@[@"application", @"value1"] error:&error];
-    XCTAssertEqualObjects(options, @{@"argument1": @"value1"}, @"Unexpected argument results.");
+    [self assertParseArguments:@"value1" expectedOptions:@{@"argument1": @"value1"}];
 }
 
 - (void)testMultipleArguments
 {
     [self.parser addArgumentWithName:@"argument1"
-                     alternativeName:nil
-                              action:ISArgumentParserActionStore
-                        defaultValue:nil
-                                type:ISArgumentParserTypeString
                                 help:@"first argument"];
     [self.parser addArgumentWithName:@"argument2"
-                     alternativeName:nil
-                              action:ISArgumentParserActionStore
-                        defaultValue:nil
-                                type:ISArgumentParserTypeString
                                 help:@"second argument"];
     [self.parser addArgumentWithName:@"argument3"
-                     alternativeName:nil
-                              action:ISArgumentParserActionStore
-                        defaultValue:nil
-                                type:ISArgumentParserTypeString
                                 help:@"third argument"];
-
-    NSError *error = nil;
-    NSDictionary *options = [self.parser parseArguments:@[@"application", @"value1", @"value2", @"value3"]
-                                                  error:&error];
-    NSDictionary *expected = @{@"argument1": @"value1",
-                               @"argument2": @"value2",
-                               @"argument3": @"value3"};
-    XCTAssertEqualObjects(options, expected, @"Unexpected argument results.");
+    [self assertParseArguments:@"value1 value2 value3"
+               expectedOptions:@{@"argument1": @"value1", @"argument2": @"value2", @"argument3": @"value3"}];
 }
 
 - (void)testArgumentWithAlternativeNameFails
@@ -77,17 +75,13 @@
     
 }
 
-// Check that optional arguments with defaults are processed in order.
-
 - (void)testBooleanFlagSet
 {
     [self.parser addArgumentWithDictionary:@{@"name": @"--flag",
                                              @"action": @(ISArgumentParserActionStoreTrue),
                                              @"help": @"boolean flag",
                                              @"type": @(ISArgumentParserTypeBool)}];
-    NSError *error = nil;
-    NSDictionary *options = [self.parser parseArguments:@[@"application", @"--flag"] error:&error];
-    XCTAssertEqualObjects(options, @{@"flag": @YES}, @"Unexpected argument results.");
+    [self assertParseArguments:@"--flag" expectedOptions:@{@"flag": @YES}];
 }
 
 - (void)testBooleanFlagUnset
@@ -98,9 +92,7 @@
                         defaultValue:nil
                                 type:ISArgumentParserTypeBool
                                 help:@"boolean flag"];
-    NSError *error = nil;
-    NSDictionary *options = [self.parser parseArguments:@[@"application"] error:&error];
-    XCTAssertEqualObjects(options, @{}, @"Unexpected argument results.");
+    [self assertParseArguments:@"" expectedOptions:@{}];
 }
 
 - (void)testBooleanFlagWithDefaultSet
@@ -111,9 +103,7 @@
                         defaultValue:@NO
                                 type:ISArgumentParserTypeBool
                                 help:@"boolean flag"];
-    NSError *error = nil;
-    NSDictionary *options = [self.parser parseArguments:@[@"application", @"--flag"] error:&error];
-    XCTAssertEqualObjects(options, @{@"flag": @YES}, @"Unexpected argument results.");
+    [self assertParseArguments:@"--flag" expectedOptions:@{@"flag": @YES}];
 }
 
 - (void)testBooleanFlagWithDefaultUnset
@@ -124,9 +114,7 @@
                         defaultValue:@NO
                                 type:ISArgumentParserTypeBool
                                 help:@"boolean flag"];
-    NSError *error = nil;
-    NSDictionary *options = [self.parser parseArguments:@[@"application"] error:&error];
-    XCTAssertEqualObjects(options, @{@"flag": @NO}, @"Unexpected argument results.");
+    [self assertParseArguments:@"" expectedOptions:@{@"flag": @NO}];
 }
 
 - (void)testBooleanFlagWithAlternativeSet
@@ -137,9 +125,7 @@
                         defaultValue:nil
                                 type:ISArgumentParserTypeBool
                                 help:@"boolean flag"];
-    NSError *error = nil;
-    NSDictionary *options = [self.parser parseArguments:@[@"application", @"-f"] error:&error];
-    XCTAssertEqualObjects(options, @{@"flag": @YES}, @"Unexpected argument results.");
+    [self assertParseArguments:@"-f" expectedOptions:@{@"flag": @YES}];
 }
 
 - (void)testBooleanFlagWithAlternativeUnset
@@ -150,9 +136,7 @@
                         defaultValue:nil
                                 type:ISArgumentParserTypeBool
                                 help:@"boolean flag"];
-    NSError *error = nil;
-    NSDictionary *options = [self.parser parseArguments:@[@"application"] error:&error];
-    XCTAssertEqualObjects(options, @{}, @"Unexpected argument results.");
+    [self assertParseArguments:@"" expectedOptions:@{}];
 }
 
 - (void)testOptionalArgument
@@ -163,48 +147,51 @@
                         defaultValue:nil
                                 type:ISArgumentParserTypeString
                                 help:@"some optional argument"];
-    NSError *error = nil;
-    NSDictionary *options = [self.parser parseArguments:@[@"application", @"--optional", @"value"] error:&error];
-    NSDictionary *expected = @{@"optional": @"value"};
-    XCTAssertEqualObjects(options, expected, @"Unexpected argument results");
-    [self.parser printHelp];
+    [self assertParseArguments:@"--optional value" expectedOptions:@{@"optional": @"value"}];
 }
 
 - (void)testOneOrMoreArguments
 {
-    [self.parser addArgumentWithDictionary:@{@"name": @"filename",
-                                             @"number": @(ISArgumentParserNumberOneOrMore),
-                                             @"help": @"boolean flag"}];
-    NSError *error = nil;
-    NSDictionary *options = [self.parser parseArguments:@[@"application", @"/tmp/file1", @"/tmp/file2"] error:&error];
-    NSDictionary *expected = @{@"filename": @[@"/tmp/file1", @"/tmp/file2"]};
-    XCTAssertEqualObjects(options, expected, @"Unexpected argument results.");
+    [self.parser addArgumentWithName:@"filename"
+                              number:ISArgumentParserNumberOneOrMore
+                                help:@"boolean flag"];
+    [self assertParseArguments:@"/tmp/file1 /tmp/file2"
+               expectedOptions:@{@"filename": @[@"/tmp/file1", @"/tmp/file2"]}];
 }
 
 - (void)testOneOrMoreFlags
 {
-    [self.parser addArgumentWithDictionary:@{@"name": @"--filename",
-                                             @"number": @(ISArgumentParserNumberOneOrMore),
-                                             @"help": @"boolean flag"}];
-    NSError *error = nil;
-    NSDictionary *options = [self.parser parseArguments:@[@"application", @"--filename", @"/tmp/file1", @"/tmp/file2"] error:&error];
-    NSDictionary *expected = @{@"filename": @[@"/tmp/file1", @"/tmp/file2"]};
-    XCTAssertEqualObjects(options, expected, @"Unexpected argument results.");
+    [self.parser addArgumentWithName:@"--filename"
+                              number:ISArgumentParserNumberOneOrMore];
+    [self assertParseArguments:@"--filename /tmp/file1 /tmp/file2"
+               expectedOptions:@{@"filename": @[@"/tmp/file1", @"/tmp/file2"]}];
+}
+
+- (void)testOneOrMoreOptionalArguments
+{
+    [self.parser addArgumentWithName:@"--foo"
+                              number:ISArgumentParserNumberAll];
+    [self.parser addArgumentWithName:@"--bar"
+                              number:ISArgumentParserNumberAll];
+    [self.parser addArgumentWithName:@"baz"
+                              number:ISArgumentParserNumberAll];
+    [self assertParseArguments:@"a b --foo x y --bar 1 2"
+               expectedOptions:@{@"bar": @[@"1", @"2"], @"baz": @[@"a", @"b"], @"foo": @[@"x", @"y"]}];
 }
 
 #pragma mark - Usage
 
 - (void)testUsageOneOrMoreArguments
 {
-    [self.parser addArgumentWithDictionary:@{@"name": @"filename",
-                                             @"number": @(ISArgumentParserNumberOneOrMore)}];
+    [self.parser addArgumentWithName:@"filename"
+                              number:ISArgumentParserNumberOneOrMore];
     XCTAssertEqualObjects([self.parser usage], @"usage: [-h] filename [filename ...]");
 }
 
 - (void)testUsageZeroOrOneArguments
 {
-    [self.parser addArgumentWithDictionary:@{@"name": @"filename",
-                                             @"number": @(ISArgumentParserNumberZeroOrOne)}];
+    [self.parser addArgumentWithName:@"filename"
+                              number:ISArgumentParserNumberZeroOrOne];
     XCTAssertEqualObjects([self.parser usage], @"usage: [-h] [filename]");
 }
 

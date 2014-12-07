@@ -107,6 +107,15 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
 }
 
 - (void)addArgumentWithName:(NSString *)name
+                     number:(ISArgumentParserNumber)number
+{
+    NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
+    ISSafeSetDictionaryKey(dictionary, ISArgumentName, name);
+    ISSafeSetDictionaryKey(dictionary, ISArgumentNumber, @(number));
+    [self addArgumentWithDictionary:dictionary];
+}
+
+- (void)addArgumentWithName:(NSString *)name
                        type:(ISArgumentParserType)type
                        help:(NSString *)help
 {
@@ -115,7 +124,6 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
     ISSafeSetDictionaryKey(dictionary, ISArgumentType, @(type));
     ISSafeSetDictionaryKey(dictionary, ISArgumentHelp, help);
     [self addArgumentWithDictionary:dictionary];
-
 }
 
 - (void)addArgumentWithName:(NSString *)name
@@ -368,6 +376,17 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
             [options[destination] addObject:[arguments pop]];
         }
         
+    } else if (argument.number == ISArgumentParserNumberAll) {
+        
+        options[destination] = [NSMutableArray array];
+        while ([arguments count] > 0) {
+            NSString *value = [arguments firstObject];
+            if ([self isFlag:value]) {
+                return;
+            }
+            [options[destination] addObject:[arguments pop]];
+        }
+    
     } else if (argument.number == ISArgumentParserNumberDefault) {
         
         if (argument.action == ISArgumentParserActionStore) {

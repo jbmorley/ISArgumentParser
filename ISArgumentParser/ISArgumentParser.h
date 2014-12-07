@@ -64,6 +64,8 @@ typedef NS_ENUM(NSUInteger, ISArgumentParserNumber) {
 - (void)addArgumentWithName:(NSString *)name
                        help:(NSString *)help;
 - (void)addArgumentWithName:(NSString *)name
+                     number:(ISArgumentParserNumber)number;
+- (void)addArgumentWithName:(NSString *)name
                        type:(ISArgumentParserType)type
                        help:(NSString *)help;
 - (void)addArgumentWithName:(NSString *)name
