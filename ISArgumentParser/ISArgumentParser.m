@@ -69,17 +69,6 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
 
 @implementation ISArgumentParser
 
-+ (NSArray *)argumentsWithCount:(int)count vector:(const char **)vector
-{
-    NSMutableArray *arguments = [NSMutableArray arrayWithCapacity:count];
-    for (int i = 0; i < count; i++) {
-        const char *arg = vector[i];
-        NSString *argument = [NSString stringWithUTF8String:arg];
-        [arguments addObject:argument];
-    }
-    return arguments;
-}
-
 + (instancetype)argumentParserWithDescription:(NSString *)description
 {
     return [[ISArgumentParser alloc] initWithDescription:description];
@@ -100,14 +89,9 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
         [self addArgumentWithName:@"-h"
                   alternativeName:@"--help"
                            action:ISArgumentParserActionStoreTrue
-                           number:ISArgumentParserNumberDefault
-                       constValue:nil
                      defaultValue:@NO
                              type:ISArgumentParserTypeBool
-                          choices:nil
-                         required:YES
                              help:@"show this message and exit"
-                          metavar:nil
                              dest:@"help"];
     }
     return self;
@@ -116,69 +100,34 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
 - (void)addArgumentWithName:(NSString *)name
                        help:(NSString *)help
 {
-    [self addArgumentWithName:name
-              alternativeName:nil
-                       action:ISArgumentParserActionStore
-                       number:ISArgumentParserNumberDefault
-                   constValue:nil
-                 defaultValue:nil
-                         type:ISArgumentParserTypeString
-                      choices:nil
-                     required:YES
-                         help:help
-                      metavar:nil
-                         dest:nil];
+    NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
+    ISSafeSetDictionaryKey(dictionary, ISArgumentName, name);
+    ISSafeSetDictionaryKey(dictionary, ISArgumentHelp, help);
+    [self addArgumentWithDictionary:dictionary];
 }
 
 - (void)addArgumentWithName:(NSString *)name
                        type:(ISArgumentParserType)type
                        help:(NSString *)help
 {
-    [self addArgumentWithName:name
-              alternativeName:nil
-                       action:ISArgumentParserActionStore
-                       number:ISArgumentParserNumberDefault
-                   constValue:nil
-                 defaultValue:nil
-                         type:type
-                      choices:nil
-                     required:YES
-                         help:help
-                      metavar:nil
-                         dest:nil];
+    NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
+    ISSafeSetDictionaryKey(dictionary, ISArgumentName, name);
+    ISSafeSetDictionaryKey(dictionary, ISArgumentType, @(type));
+    ISSafeSetDictionaryKey(dictionary, ISArgumentHelp, help);
+    [self addArgumentWithDictionary:dictionary];
+
 }
 
-- (void)addArgumentWithDictionary:(NSDictionary *)dictionary
+- (void)addArgumentWithName:(NSString *)name
+                     number:(ISArgumentParserNumber)number
+                       help:(NSString *)help
 {
-    ISArgumentParserAction action = dictionary[@"action"] ? [dictionary[@"action"] integerValue] : ISArgumentParserActionStore;
-    ISArgumentParserNumber number = dictionary[@"number"] ? [dictionary[@"number"] integerValue] : ISArgumentParserNumberDefault;
-    ISArgumentParserType type = dictionary[@"type"] ? [dictionary[@"type"] integerValue] : ISArgumentParserTypeString;
-    BOOL required = dictionary[@"required"] ? [dictionary[@"required"] boolValue] : NO;
-    NSCharacterSet *prefixCharacters = [NSCharacterSet characterSetWithCharactersInString:self.prefixCharacters];
-    ISArgument *argument = [[ISArgument alloc] initWithName:dictionary[@"name"]
-                                            alternativeName:dictionary[@"alternativeName"]
-                                                     action:action
-                                                     number:number
-                                                 constValue:dictionary[@"constValue"]
-                                               defaultValue:dictionary[@"defaultValue"]
-                                                       type:type
-                                                    choices:dictionary[@"choices"]
-                                                   required:required
-                                                       help:dictionary[@"help"]
-                                                    metavar:dictionary[@"metavar"]
-                                                       dest:dictionary[@"dest"]
-                                           prefixCharacters:prefixCharacters];
-    [self addArgument:argument];
-}
+    NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
+    ISSafeSetDictionaryKey(dictionary, ISArgumentName, name);
+    ISSafeSetDictionaryKey(dictionary, ISArgumentNumber, @(number));
+    ISSafeSetDictionaryKey(dictionary, ISArgumentHelp, help);
+    [self addArgumentWithDictionary:dictionary];
 
-- (void)registerArgument:(ISArgument *)argument
-                 forFlag:(NSString *)flag
-{
-    ISArgument *existing = self.optionalArguments[flag];
-    if (existing) {
-        @throw [NSException exceptionWithName:@"" reason:@"" userInfo:nil];
-    }
-    self.optionalArguments[flag] = argument;
 }
 
 - (void)addArgumentWithName:(NSString *)name
@@ -188,18 +137,33 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
                        type:(ISArgumentParserType)type
                        help:(NSString *)help
 {
-    [self addArgumentWithName:name
-              alternativeName:alternativeName
-                       action:action
-                       number:ISArgumentParserNumberDefault
-                   constValue:nil
-                 defaultValue:defaultValue
-                         type:type
-                      choices:nil
-                     required:YES
-                         help:help
-                      metavar:nil
-                         dest:nil];
+    NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
+    ISSafeSetDictionaryKey(dictionary, ISArgumentName, name);
+    ISSafeSetDictionaryKey(dictionary, ISArgumentAlternativeName, alternativeName);
+    ISSafeSetDictionaryKey(dictionary, ISArgumentAction, @(action));
+    ISSafeSetDictionaryKey(dictionary, ISArgumentDefaultValue, defaultValue);
+    ISSafeSetDictionaryKey(dictionary, ISArgumentType, @(type));
+    ISSafeSetDictionaryKey(dictionary, ISArgumentHelp, help);
+    [self addArgumentWithDictionary:dictionary];
+}
+
+- (void)addArgumentWithName:(NSString *)name
+            alternativeName:(NSString *)alternativeName
+                     action:(ISArgumentParserAction)action
+               defaultValue:(id)defaultValue
+                       type:(ISArgumentParserType)type
+                       help:(NSString *)help
+                       dest:(NSString *)dest
+{
+    NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
+    ISSafeSetDictionaryKey(dictionary, ISArgumentName, name);
+    ISSafeSetDictionaryKey(dictionary, ISArgumentAlternativeName, alternativeName);
+    ISSafeSetDictionaryKey(dictionary, ISArgumentAction, @(action));
+    ISSafeSetDictionaryKey(dictionary, ISArgumentDefaultValue, defaultValue);
+    ISSafeSetDictionaryKey(dictionary, ISArgumentType, @(type));
+    ISSafeSetDictionaryKey(dictionary, ISArgumentHelp, help);
+    ISSafeSetDictionaryKey(dictionary, ISArgumentDest, dest);
+    [self addArgumentWithDictionary:dictionary];
 }
 
 - (void)addArgumentWithName:(NSString *)name
@@ -215,28 +179,31 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
                     metavar:(NSString *)metavar
                        dest:(NSString *)dest
 {
-    // Construct the argument.
+    NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
+    ISSafeSetDictionaryKey(dictionary, ISArgumentName, name);
+    ISSafeSetDictionaryKey(dictionary, ISArgumentAlternativeName, alternativeName);
+    ISSafeSetDictionaryKey(dictionary, ISArgumentAction, @(action));
+    ISSafeSetDictionaryKey(dictionary, ISArgumentNumber, @(number));
+    ISSafeSetDictionaryKey(dictionary, ISArgumentConstValue, constValue);
+    ISSafeSetDictionaryKey(dictionary, ISArgumentDefaultValue, defaultValue);
+    ISSafeSetDictionaryKey(dictionary, ISArgumentType, @(type));
+    ISSafeSetDictionaryKey(dictionary, ISArgumentChoices, choices);
+    ISSafeSetDictionaryKey(dictionary, ISArgumentRequired, @(required));
+    ISSafeSetDictionaryKey(dictionary, ISArgumentHelp, help);
+    ISSafeSetDictionaryKey(dictionary, ISArgumentMetavar, metavar);
+    ISSafeSetDictionaryKey(dictionary, ISArgumentDest, dest);
+    [self addArgumentWithDictionary:dictionary];
+}
+
+- (void)addArgumentWithDictionary:(NSDictionary *)dictionary
+{
     NSCharacterSet *prefixCharacters = [NSCharacterSet characterSetWithCharactersInString:self.prefixCharacters];
-    ISArgument *argument = [[ISArgument alloc] initWithName:name
-                                            alternativeName:alternativeName
-                                                     action:action
-                                                     number:number
-                                                 constValue:constValue
-                                               defaultValue:defaultValue
-                                                       type:type
-                                                    choices:choices
-                                                   required:required
-                                                       help:help
-                                                    metavar:metavar
-                                                       dest:dest
-                                           prefixCharacters:prefixCharacters];
-    
+    ISArgument *argument = [ISArgument argumentWithDictionary:dictionary prefixCharacters:prefixCharacters];
     [self addArgument:argument];
 }
 
 - (void)addArgument:(ISArgument *)argument
 {
-    
     // Check that the argument destination doesn't already exist.
     if ([self.destinations containsObject:[argument destination]]) {
         @throw [NSException exceptionWithName:@"" reason:@"" userInfo:nil];
@@ -348,7 +315,7 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
                 [[positionalArguments componentsJoinedByString:@" "] UTF8String]);
         if (error) {
             *error = [NSError errorWithDomain:ISArgumentParserErrorDomain
-                                         code:ISArgumentPArserErrorUnrecognizedArguments
+                                         code:ISArgumentParserErrorUnrecognizedArguments
                                      userInfo:nil];
         }
         return nil;
@@ -356,6 +323,16 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
     }
     
     return options;
+}
+
+- (void)registerArgument:(ISArgument *)argument
+                 forFlag:(NSString *)flag
+{
+    ISArgument *existing = self.optionalArguments[flag];
+    if (existing) {
+        @throw [NSException exceptionWithName:@"" reason:@"" userInfo:nil];
+    }
+    self.optionalArguments[flag] = argument;
 }
 
 - (ISArgument *)optionalArgumentForFlag:(NSString *)flag
@@ -390,7 +367,6 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
             }
             [options[destination] addObject:[arguments pop]];
         }
-        
         
     } else if (argument.number == ISArgumentParserNumberDefault) {
         
@@ -507,7 +483,12 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
                                    vector:(const char **)vector
                                     error:(NSError *__autoreleasing *)error
 {
-    NSArray *arguments = [ISArgumentParser argumentsWithCount:count vector:vector];
+    NSMutableArray *arguments = [NSMutableArray arrayWithCapacity:count];
+    for (int i = 0; i < count; i++) {
+        const char *arg = vector[i];
+        NSString *argument = [NSString stringWithUTF8String:arg];
+        [arguments addObject:argument];
+    }
     return [self parseArguments:arguments error:error];
 }
 

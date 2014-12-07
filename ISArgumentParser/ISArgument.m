@@ -24,6 +24,19 @@
 
 #import "ISArgument.h"
 
+NSString *const ISArgumentName = @"name";
+NSString *const ISArgumentAlternativeName = @"alternativeName";
+NSString *const ISArgumentAction = @"action";
+NSString *const ISArgumentNumber = @"number";
+NSString *const ISArgumentConstValue = @"constValue";
+NSString *const ISArgumentDefaultValue = @"defaultValue";
+NSString *const ISArgumentType = @"type";
+NSString *const ISArgumentChoices = @"choices";
+NSString *const ISArgumentRequired = @"required";
+NSString *const ISArgumentHelp = @"help";
+NSString *const ISArgumentMetavar = @"metavar";
+NSString *const ISArgumentDest = @"dest";
+
 @interface ISArgument ()
 
 @property (nonatomic, readonly, strong) id constValue;
@@ -38,6 +51,29 @@
 @end
 
 @implementation ISArgument
+
++ (instancetype)argumentWithDictionary:(NSDictionary *)dictionary
+                      prefixCharacters:(NSCharacterSet *)prefixCharacters
+{
+    ISArgumentParserAction action = dictionary[ISArgumentAction] ? [dictionary[ISArgumentAction] integerValue] : ISArgumentParserActionStore;
+    ISArgumentParserNumber number = dictionary[ISArgumentNumber] ? [dictionary[ISArgumentNumber] integerValue] : ISArgumentParserNumberDefault;
+    ISArgumentParserType type = dictionary[ISArgumentType] ? [dictionary[ISArgumentType] integerValue] : ISArgumentParserTypeString;
+    BOOL required = dictionary[ISArgumentRequired] ? [dictionary[ISArgumentRequired] boolValue] : NO;
+    ISArgument *argument = [[ISArgument alloc] initWithName:dictionary[ISArgumentName]
+                                            alternativeName:dictionary[ISArgumentAlternativeName]
+                                                     action:action
+                                                     number:number
+                                                 constValue:dictionary[ISArgumentConstValue]
+                                               defaultValue:dictionary[ISArgumentDefaultValue]
+                                                       type:type
+                                                    choices:dictionary[ISArgumentChoices]
+                                                   required:required
+                                                       help:dictionary[ISArgumentHelp]
+                                                    metavar:dictionary[ISArgumentMetavar]
+                                                       dest:dictionary[ISArgumentDest]
+                                           prefixCharacters:prefixCharacters];
+    return argument;
+}
 
 - (instancetype)initWithName:(NSString *)name
              alternativeName:(NSString *)alternativeName

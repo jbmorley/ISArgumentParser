@@ -22,6 +22,19 @@
 
 #import "ISArgumentParser.h"
 
+extern NSString *const ISArgumentName;
+extern NSString *const ISArgumentAlternativeName;
+extern NSString *const ISArgumentAction;
+extern NSString *const ISArgumentNumber;
+extern NSString *const ISArgumentConstValue;
+extern NSString *const ISArgumentDefaultValue;
+extern NSString *const ISArgumentType;
+extern NSString *const ISArgumentChoices;
+extern NSString *const ISArgumentRequired;
+extern NSString *const ISArgumentHelp;
+extern NSString *const ISArgumentMetavar;
+extern NSString *const ISArgumentDest;
+
 @interface ISArgument : NSObject
 
 @property (nonatomic, readonly, strong) NSString *name;
@@ -35,6 +48,8 @@
 + (instancetype)new __attribute__((unavailable("new not available")));
 - (instancetype)init __attribute__((unavailable("init not available")));
 
++ (instancetype)argumentWithDictionary:(NSDictionary *)dictionary
+                      prefixCharacters:(NSCharacterSet *)prefixCharacters;
 - (instancetype)initWithName:(NSString *)name
              alternativeName:(NSString *)alternativeName
                       action:(ISArgumentParserAction)action

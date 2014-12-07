@@ -40,7 +40,7 @@ typedef NS_ENUM(NSUInteger, ISArgumentParserError) {
     ISArgumentParserErrorInvalidArguments,
     ISArgumentParserErrorUnsupportedOption,
     ISArgumentParserErrorTooFewArguments,
-    ISArgumentPArserErrorUnrecognizedArguments,
+    ISArgumentParserErrorUnrecognizedArguments,
 };
 
 typedef NS_ENUM(NSUInteger, ISArgumentParserNumber) {
@@ -58,8 +58,6 @@ typedef NS_ENUM(NSUInteger, ISArgumentParserNumber) {
 + (instancetype)new __attribute__((unavailable("new not available")));
 - (instancetype)init __attribute__((unavailable("init not available")));
 
-+ (NSArray *)argumentsWithCount:(int)count vector:(const char **)vector;
-
 + (instancetype)argumentParserWithDescription:(NSString *)description;
 - (instancetype)initWithDescription:(NSString *)description;
 
@@ -69,11 +67,21 @@ typedef NS_ENUM(NSUInteger, ISArgumentParserNumber) {
                        type:(ISArgumentParserType)type
                        help:(NSString *)help;
 - (void)addArgumentWithName:(NSString *)name
+                     number:(ISArgumentParserNumber)number
+                       help:(NSString *)help;
+- (void)addArgumentWithName:(NSString *)name
             alternativeName:(NSString *)alternativeName
                      action:(ISArgumentParserAction)action
                defaultValue:(id)defaultValue
                        type:(ISArgumentParserType)type
                        help:(NSString *)help;
+- (void)addArgumentWithName:(NSString *)name
+            alternativeName:(NSString *)alternativeName
+                     action:(ISArgumentParserAction)action
+               defaultValue:(id)defaultValue
+                       type:(ISArgumentParserType)type
+                       help:(NSString *)help
+                       dest:(NSString *)dest;
 
 /**
  * @param name or flags - Either a name or a list of option strings, e.g. foo or -f, --foo.
