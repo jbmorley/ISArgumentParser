@@ -39,7 +39,6 @@ NSString *const ISArgumentDest = @"dest";
 
 @interface ISArgument ()
 
-@property (nonatomic, readonly, assign) ISArgumentParserType type;
 @property (nonatomic, readonly, strong) NSArray *choices;
 @property (nonatomic, readonly, assign) BOOL required;
 @property (nonatomic, readonly, strong) NSString *metavar;

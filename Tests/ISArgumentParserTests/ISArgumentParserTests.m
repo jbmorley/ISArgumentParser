@@ -135,7 +135,8 @@
 - (void)testIntergerCoercion
 {
     [self.parser addArgumentWithName:@"--foo"
-                                type:ISArgumentParserTypeInteger];
+                                type:ISArgumentParserTypeInteger
+                                help:@""];
     [self assertParseArguments:@"--foo 42" expectedOptions:@{@"foo": @42}];
 }
 

@@ -407,13 +407,13 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
     if (argument.number == ISArgumentParserNumberOneOrMore) {
         
         options[destination] = [NSMutableArray array];
-        [options[destination] addObject:[arguments pop]];
+        [options[destination] addObject:[self coerceValue:[arguments pop] toType:argument.type]];
         while ([arguments count] > 0) {
             NSString *value = [arguments firstObject];
             if ([self isFlag:value]) {
                 return;
             }
-            [options[destination] addObject:[arguments pop]];
+            [options[destination] addObject:[self coerceValue:[arguments pop] toType:argument.type]];
         }
         
     } else if (argument.number == ISArgumentParserNumberAll) {
@@ -424,7 +424,7 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
             if ([self isFlag:value]) {
                 return;
             }
-            [options[destination] addObject:[arguments pop]];
+            [options[destination] addObject:[self coerceValue:[arguments pop] toType:argument.type]];
         }
     
     } else if (argument.number == ISArgumentParserNumberDefault) {
@@ -432,7 +432,7 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
         if (argument.action == ISArgumentParserActionStore) {
             
             NSString *value = [arguments pop];
-            options[destination] = value;
+            options[destination] = [self coerceValue:value toType:argument.type];
             
         } else if (argument.action == ISArgumentParserActionStoreConst) {
             
@@ -458,6 +458,18 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
         
     }
     
+}
+
+- (id)coerceValue:(NSString *)value toType:(ISArgumentParserType)type
+{
+    if (type == ISArgumentParserTypeString) {
+        return value;
+    } else if (type == ISArgumentParserTypeInteger) {
+        return @([value integerValue]);
+    } else if (type == ISArgumentParserTypeBool) {
+        return @([value boolValue]);
+    }
+    return value;
 }
 
 - (NSString *)usage
