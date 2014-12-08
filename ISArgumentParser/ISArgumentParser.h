@@ -37,6 +37,12 @@ typedef NS_ENUM(NSUInteger, ISArgumentParserAction) {
     
     ISArgumentParserActionStoreTrue,
     ISArgumentParserActionStoreFalse,
+    
+    /**
+     * This stores a list, and appends each argument value to the list. This is useful to allow an option to be
+     * specified multiple times.
+     */
+    ISArgumentParserActionAppend,
 };
 
 typedef NS_ENUM(NSUInteger, ISArgumentParserType) {

@@ -125,6 +125,15 @@
     [self assertParseArguments:@"--foo" expectedOptions:@{@"foo": @"42"}];
 }
 
+- (void)testActionAppend
+{
+    [self.parser addArgumentWithName:@"--foo"
+                              action:ISArgumentParserActionAppend
+                                type:ISArgumentParserTypeString
+                                help:@""];
+    [self assertParseArguments:@"--foo 1 --foo 2" expectedOptions:@{@"foo": @[@"1", @"2"]}];
+}
+
 - (void)testConstTypeMismatch
 {
     XCTAssertThrows([self.parser addArgumentWithName:@"--foo"

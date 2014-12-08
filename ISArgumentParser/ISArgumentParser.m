@@ -445,6 +445,13 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
             
             options[destination] = @NO;
             
+        } else if (argument.action == ISArgumentParserActionAppend) {
+            
+            if (options[destination] == nil) {
+                options[destination] = [NSMutableArray array];
+            }
+            [options[destination] addObject:[self coerceValue:[arguments pop] toType:argument.type]];
+            
         }
         
     } else {
