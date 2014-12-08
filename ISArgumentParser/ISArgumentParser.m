@@ -151,7 +151,6 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
     ISSafeSetDictionaryKey(dictionary, ISArgumentNumber, @(number));
     ISSafeSetDictionaryKey(dictionary, ISArgumentHelp, help);
     [self addArgumentWithDictionary:dictionary];
-
 }
 
 - (void)addArgumentWithName:(NSString *)name

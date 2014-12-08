@@ -39,15 +39,15 @@
     return [self.parser parseArguments:arguments error:error];
 }
 
-- (NSDictionary *)assertParseArguments:(NSString *)arguments
+- (void)assertParseArguments:(NSString *)arguments
                        expectedOptions:(NSDictionary *)expectedOptions
 {
     NSDictionary *options = [self parseArguments:arguments error:NULL];
     XCTAssertEqualObjects(options, expectedOptions, @"Unexpected argument results.");
 }
 
-- (NSDictionary *)assertParseArguments:(NSString *)arguments
-                     expectedErrorCode:(ISArgumentParserError)expectedErrorCode
+- (void)assertParseArguments:(NSString *)arguments
+           expectedErrorCode:(ISArgumentParserError)expectedErrorCode
 {
     NSError *error = nil;
     NSDictionary *options = [self parseArguments:arguments error:&error];
