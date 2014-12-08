@@ -39,7 +39,6 @@ NSString *const ISArgumentDest = @"dest";
 
 @interface ISArgument ()
 
-@property (nonatomic, readonly, strong) id constValue;
 @property (nonatomic, readonly, assign) ISArgumentParserType type;
 @property (nonatomic, readonly, strong) NSArray *choices;
 @property (nonatomic, readonly, assign) BOOL required;
@@ -119,35 +118,43 @@ NSString *const ISArgumentDest = @"dest";
             @throw [NSException exceptionWithName:@"" reason:@"" userInfo:nil];
         }
         
-        // TODO Check the validity of the argument.
-        
-        // Check that the defualt value is of the correct type if one is set.
-        if (_defaultValue) {
-            if (_type == ISArgumentParserTypeString) {
-                
-                if (![_defaultValue isKindOfClass:[NSString class]]) {
-                    @throw [NSException exceptionWithName:@"" reason:@"" userInfo:nil];
-                }
-                
-            } else if (_type == ISArgumentParserTypeInteger ||
-                       _type == ISArgumentParserTypeBool) {
-                
-                if (![_defaultValue isKindOfClass:[NSNumber class]]) {
-                    @throw [NSException exceptionWithName:@"" reason:@"" userInfo:nil];
-                }
-                
-            } else {
-                @throw [NSException exceptionWithName:@"" reason:@"" userInfo:nil];
-            }
-        }
+        // Check that the default and the const value are of the correct type.
+        [self assertValue:_defaultValue isNilOrType:type];
+        [self assertValue:_constValue isNilOrType:type];
         
     }
     return self;
 }
 
+- (void)assertValue:(id)value class:(Class)class
+{
+    if (![value isKindOfClass:class]) {
+        @throw [NSException exceptionWithName:@"" reason:@"" userInfo:nil];
+    }
+}
+
+- (void)assertValue:(id)value isNilOrType:(ISArgumentParserType)type
+{
+    if (value == nil) {
+        return;
+    }
+    
+    if (type == ISArgumentParserTypeString) {
+        [self assertValue:value class:[NSString class]];
+    }
+}
+
 - (NSString *)nameWithoutPrefix
 {
-    return [self stripPrefixes:self.name];
+    NSString *nameWithoutPrefix = [self stripPrefixes:self.name];
+    NSString *alternativeNameWithoutPrefix = [self stripPrefixes:self.alternativeName];
+    NSUInteger namePrefixLength = [self.name length] - [nameWithoutPrefix length];
+    NSUInteger alternativeNamePrefixLength = [self.alternativeName length] - [alternativeNameWithoutPrefix length];
+    if (namePrefixLength >= alternativeNamePrefixLength) {
+        return nameWithoutPrefix;
+    } else {
+        return alternativeNameWithoutPrefix;
+    }
 }
 
 - (NSString *)destination
@@ -190,7 +197,7 @@ NSString *const ISArgumentDest = @"dest";
 {
     NSString *result = [string copy];
     NSRange prefixRange = [result rangeOfCharacterFromSet:self.prefixCharacters];
-    while (prefixRange.location == 0) {
+    while (prefixRange.location == 0 && prefixRange.length > 0) {
         result = [result substringFromIndex:prefixRange.location + 1];
         prefixRange = [result rangeOfCharacterFromSet:self.prefixCharacters];
     }

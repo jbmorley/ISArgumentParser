@@ -23,7 +23,18 @@
 #import <Foundation/Foundation.h>
 
 typedef NS_ENUM(NSUInteger, ISArgumentParserAction) {
+    
+    /**
+     * This just stores the argument’s value. This is the default action.
+     */
     ISArgumentParserActionStore,
+    
+    /**
+     * This stores the value specified by the const keyword argument. (Note that the constValue argument defaults to
+     * nil.) This action is most commonly used with optional arguments that specify some sort of flag.
+     */
+    ISArgumentParserActionStoreConst,
+    
     ISArgumentParserActionStoreTrue,
     ISArgumentParserActionStoreFalse,
 };
@@ -61,6 +72,9 @@ typedef NS_ENUM(NSUInteger, ISArgumentParserNumber) {
 + (instancetype)argumentParserWithDescription:(NSString *)description;
 - (instancetype)initWithDescription:(NSString *)description;
 
+- (void)addArgumentWithName:(NSString *)name;
+- (void)addArgumentWithName:(NSString *)name
+            alternativeName:(NSString *)alternativeName;
 - (void)addArgumentWithName:(NSString *)name
                        help:(NSString *)help;
 - (void)addArgumentWithName:(NSString *)name
@@ -70,6 +84,13 @@ typedef NS_ENUM(NSUInteger, ISArgumentParserNumber) {
                        help:(NSString *)help;
 - (void)addArgumentWithName:(NSString *)name
                      number:(ISArgumentParserNumber)number
+                       help:(NSString *)help;
+- (void)addArgumentWithName:(NSString *)name
+                     action:(ISArgumentParserAction)action
+                 constValue:(id)constValue;
+- (void)addArgumentWithName:(NSString *)name
+                     action:(ISArgumentParserAction)action
+                       type:(ISArgumentParserType)type
                        help:(NSString *)help;
 - (void)addArgumentWithName:(NSString *)name
             alternativeName:(NSString *)alternativeName
@@ -111,8 +132,6 @@ typedef NS_ENUM(NSUInteger, ISArgumentParserNumber) {
                        help:(NSString *)help
                     metavar:(NSString *)metavar
                        dest:(NSString *)dest;
-
-- (void)addArgumentWithDictionary:(NSDictionary *)dictionary;
 
 - (NSString *)usage;
 

@@ -98,6 +98,22 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
 }
 
 - (void)addArgumentWithName:(NSString *)name
+{
+    NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
+    ISSafeSetDictionaryKey(dictionary, ISArgumentName, name);
+    [self addArgumentWithDictionary:dictionary];
+}
+
+- (void)addArgumentWithName:(NSString *)name
+            alternativeName:(NSString *)alternativeName
+{
+    NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
+    ISSafeSetDictionaryKey(dictionary, ISArgumentName, name);
+    ISSafeSetDictionaryKey(dictionary, ISArgumentAlternativeName, alternativeName);
+    [self addArgumentWithDictionary:dictionary];
+}
+
+- (void)addArgumentWithName:(NSString *)name
                        help:(NSString *)help
 {
     NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
@@ -136,6 +152,30 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
     ISSafeSetDictionaryKey(dictionary, ISArgumentHelp, help);
     [self addArgumentWithDictionary:dictionary];
 
+}
+
+- (void)addArgumentWithName:(NSString *)name
+                     action:(ISArgumentParserAction)action
+                 constValue:(id)constValue
+{
+    NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
+    ISSafeSetDictionaryKey(dictionary, ISArgumentName, name);
+    ISSafeSetDictionaryKey(dictionary, ISArgumentAction, @(action));
+    ISSafeSetDictionaryKey(dictionary, ISArgumentConstValue, constValue);
+    [self addArgumentWithDictionary:dictionary];
+}
+
+- (void)addArgumentWithName:(NSString *)name
+                     action:(ISArgumentParserAction)action
+                       type:(ISArgumentParserType)type
+                       help:(NSString *)help
+{
+    NSMutableDictionary *dictionary = [NSMutableDictionary dictionary];
+    ISSafeSetDictionaryKey(dictionary, ISArgumentName, name);
+    ISSafeSetDictionaryKey(dictionary, ISArgumentAction, @(action));
+    ISSafeSetDictionaryKey(dictionary, ISArgumentType, @(type));
+    ISSafeSetDictionaryKey(dictionary, ISArgumentHelp, help);
+    [self addArgumentWithDictionary:dictionary];
 }
 
 - (void)addArgumentWithName:(NSString *)name
@@ -394,6 +434,10 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
             NSString *value = [arguments pop];
             options[destination] = value;
             
+        } else if (argument.action == ISArgumentParserActionStoreConst) {
+            
+            options[destination] = argument.constValue;
+        
         } else if (argument.action == ISArgumentParserActionStoreTrue) {
             
             options[destination] = @YES;

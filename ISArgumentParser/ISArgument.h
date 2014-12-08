@@ -41,6 +41,7 @@ extern NSString *const ISArgumentDest;
 @property (nonatomic, readonly, strong) NSString *alternativeName;
 @property (nonatomic, readonly, assign) ISArgumentParserAction action;
 @property (nonatomic, readonly, assign) ISArgumentParserNumber number;
+@property (nonatomic, readonly, strong) id constValue;
 @property (nonatomic, readonly, strong) id defaultValue;
 @property (nonatomic, readonly, strong) NSString *help;
 @property (nonatomic, readonly, assign) BOOL isOption;

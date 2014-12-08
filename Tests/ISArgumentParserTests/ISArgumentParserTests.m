@@ -29,22 +29,32 @@
     [super tearDown];
 }
 
-- (NSDictionary *)parseArguments:(NSString *)string
+- (NSDictionary *)parseArguments:(NSString *)string error:(NSError *__autoreleasing *)error
 {
-    NSError *error = nil;
     NSMutableArray *arguments = [NSMutableArray array];
     [arguments addObject:@"application"];
     if ([string length] > 0) {
         [arguments addObjectsFromArray:[string componentsSeparatedByString:@" "]];
     }
-    return [self.parser parseArguments:arguments error:&error];
+    return [self.parser parseArguments:arguments error:error];
 }
 
 - (NSDictionary *)assertParseArguments:(NSString *)arguments
                        expectedOptions:(NSDictionary *)expectedOptions
 {
-    NSDictionary *options = [self parseArguments:arguments];
+    NSDictionary *options = [self parseArguments:arguments error:NULL];
     XCTAssertEqualObjects(options, expectedOptions, @"Unexpected argument results.");
+}
+
+- (NSDictionary *)assertParseArguments:(NSString *)arguments
+                     expectedErrorCode:(ISArgumentParserError)expectedErrorCode
+{
+    NSError *error = nil;
+    NSDictionary *options = [self parseArguments:arguments error:&error];
+    XCTAssertNil(options);
+    XCTAssertNotNil(error);
+    XCTAssertEqualObjects(error.domain, ISArgumentParserErrorDomain);
+    XCTAssertEqual(error.code, expectedErrorCode);
 }
 
 - (void)testSingleArgument
@@ -70,17 +80,71 @@
                expectedOptions:@{@"argument1": @"value1", @"argument2": @"value2", @"argument3": @"value3"}];
 }
 
+- (void)testPrefixCharacters
+{
+    self.parser.prefixCharacters = @"-+";
+    [self.parser addArgumentWithName:@"+f"];
+    [self.parser addArgumentWithName:@"++bar"];
+    [self assertParseArguments:@"+f X ++bar Y"
+               expectedOptions:@{@"bar": @"Y", @"f": @"X"}];
+}
+
 - (void)testArgumentWithAlternativeNameFails
 {
-    
+    XCTAssertThrows([self.parser addArgumentWithName:@"name"
+                                     alternativeName:@"alternativeName"]);
+}
+
+- (void)testOptionalWithAlternativeNameSucceeds
+{
+    XCTAssertNoThrow([self.parser addArgumentWithName:@"-f" alternativeName:@"--foo"]);
+}
+
+- (void)testOptionalAndPositional
+{
+    [self.parser addArgumentWithName:@"-f" alternativeName:@"--foo"];
+    [self.parser addArgumentWithName:@"bar"];
+    [self assertParseArguments:@"BAR" expectedOptions:@{@"bar": @"BAR"}];
+    [self assertParseArguments:@"BAR --foo FOO" expectedOptions:@{@"bar": @"BAR", @"foo": @"FOO"}];
+    [self assertParseArguments:@"--foo FOO"
+             expectedErrorCode:ISArgumentParserErrorTooFewArguments];
+}
+
+- (void)testActionStore
+{
+    [self.parser addArgumentWithName:@"--foo"];
+    [self assertParseArguments:@"--foo 1"
+               expectedOptions:@{@"foo": @"1"}];
+}
+
+- (void)testActionStoreConst
+{
+    [self.parser addArgumentWithName:@"--foo"
+                              action:ISArgumentParserActionStoreConst
+                          constValue:@"42"];
+    [self assertParseArguments:@"--foo" expectedOptions:@{@"foo": @"42"}];
+}
+
+- (void)testConstTypeMismatch
+{
+    XCTAssertThrows([self.parser addArgumentWithName:@"--foo"
+                                              action:ISArgumentParserActionStoreConst
+                                          constValue:@42]);
+}
+
+- (void)testIntergerCoercion
+{
+    [self.parser addArgumentWithName:@"--foo"
+                                type:ISArgumentParserTypeInteger];
+    [self assertParseArguments:@"--foo 42" expectedOptions:@{@"foo": @42}];
 }
 
 - (void)testBooleanFlagSet
 {
-    [self.parser addArgumentWithDictionary:@{@"name": @"--flag",
-                                             @"action": @(ISArgumentParserActionStoreTrue),
-                                             @"help": @"boolean flag",
-                                             @"type": @(ISArgumentParserTypeBool)}];
+    [self.parser addArgumentWithName:@"--flag"
+                              action:ISArgumentParserActionStoreTrue
+                                type:ISArgumentParserTypeBool
+                                help:@"boolean flag"];
     [self assertParseArguments:@"--flag" expectedOptions:@{@"flag": @YES}];
 }
 
