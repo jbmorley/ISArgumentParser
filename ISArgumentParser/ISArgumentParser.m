@@ -52,7 +52,7 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
 
 @interface ISArgumentParser ()
 
-@property (nonatomic, readonly, copy) NSString *description;
+@property (nonatomic, readonly, copy) NSString *help;
 @property (nonatomic, readonly, strong) NSMutableArray *allArguments;
 @property (nonatomic, readonly, strong) NSMutableArray *positionalArguments;
 @property (nonatomic, readonly, strong) NSMutableDictionary *optionalArguments;
@@ -78,7 +78,7 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
 {
     self = [super init];
     if (self) {
-        _description = description;
+        _help = description;
         _allArguments = [NSMutableArray array];
         _positionalArguments = [NSMutableArray array];
         _optionalArguments = [NSMutableDictionary dictionary];
@@ -553,7 +553,7 @@ NSString *const ISArgumentParserErrorDomain = @"ISArgumentParserErrorDomain";
                       @"optional arguments:\n"
                       @"%@\n",
                       [self usage:application],
-                      [self description],
+                      self.help,
                       [positionals componentsJoinedByString:@"\n"],
                       [options componentsJoinedByString:@"\n"]];
     
