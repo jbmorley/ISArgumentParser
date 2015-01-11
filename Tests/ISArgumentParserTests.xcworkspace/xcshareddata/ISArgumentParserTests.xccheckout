@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>8634967F-ECA0-4B76-BC96-5134C57BF7F6</string>
+	<key>IDESourceControlProjectName</key>
+	<string>ISArgumentParserTests</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>508E8024063EDFD358E1D389E778870D8218845A</key>
+		<string>github.com:jbmorley/ISArgumentParser.git</string>
+		<key>78F1715F52ED800B92D311D65D46A47F53984CE9</key>
+		<string>github.com:jbmorley/ISUtilities.git</string>
+		<key>C9B666C72354646B393421EA0B6AD62E2ED4A704</key>
+		<string>github.com:jbmorley/add-to-itunes.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>Tests/ISArgumentParserTests.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>508E8024063EDFD358E1D389E778870D8218845A</key>
+		<string>../..</string>
+		<key>78F1715F52ED800B92D311D65D46A47F53984CE9</key>
+		<string>../../../shows/dependencies/ISUtilities</string>
+		<key>C9B666C72354646B393421EA0B6AD62E2ED4A704</key>
+		<string>../../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>github.com:jbmorley/ISArgumentParser.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>508E8024063EDFD358E1D389E778870D8218845A</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>C9B666C72354646B393421EA0B6AD62E2ED4A704</string>
+			<key>IDESourceControlWCCName</key>
+			<string></string>
+		</dict>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>508E8024063EDFD358E1D389E778870D8218845A</string>
+			<key>IDESourceControlWCCName</key>
+			<string>ISArgumentParser</string>
+		</dict>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>78F1715F52ED800B92D311D65D46A47F53984CE9</string>
+			<key>IDESourceControlWCCName</key>
+			<string>ISUtilities</string>
+		</dict>
+	</array>
+</dict>
+</plist>
