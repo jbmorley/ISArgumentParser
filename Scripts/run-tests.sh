@@ -9,5 +9,6 @@ tests=ISArgumentParserTests
 
 pushd "$root_directory/Tests"
 pod update
-xcodebuild -workspace "$tests.xcworkspace" -scheme "$tests" clean test
+xcodebuild -workspace "$tests.xcworkspace" -scheme "$tests" clean build | xcpretty -c
+xcodebuild -workspace "$tests.xcworkspace" -scheme "$tests" test
 popd
